@@ -1,2 +1,8 @@
 * { box-sizing: border-box; margin: 0; }
-body { font-family: system-ui, sans-serif; }
+body { font-family: system-ui, sans-serif; color: #0f172a; }
+.app { display: grid; grid-template-columns: 380px 1fr; height: 100vh; }
+.chat-col { display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; background: #f8fafc; }
+.brand { padding: 16px; font-weight: 700; font-size: 18px; border-bottom: 1px solid #e2e8f0; }
+.chat-body { flex: 1; overflow-y: auto; padding: 16px; }
+.canvas-col { position: relative; }
+.placeholder { display: grid; place-items: center; height: 100%; color: #94a3b8; }
