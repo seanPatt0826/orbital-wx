@@ -26,6 +26,8 @@ test('classifies cells into bands and computes rounded percentages', () => {
   assert.equal(by.Normal.count, 2);
   assert.equal(by.Severe.pct, Math.round((2 / 7) * 100)); // 29
   assert.equal(by.Moderate.pct, Math.round((3 / 7) * 100)); // 43
+  assert.equal(by.Severe.count + by.Moderate.count + by.Normal.count, 7);
+  assert.equal(r.mean, (5 + 15 + 55 + 8 + 35 + 95 + 20) / 7);
 });
 
 test('restricts to a bbox by cell-center membership', () => {
@@ -45,7 +47,7 @@ test('handles an empty bbox with null stats and zero pcts', () => {
 
 test('preserves band color and covers longitude wrap-free ranges', () => {
   const r = computeStats(grid, { minLat: -90, maxLat: 90, minLon: -180, maxLon: 0 }, bands);
-  // Western hemisphere cols (lonCenter -135,-45): values 5,55,8,95 → counted 4.
+  // Western hemisphere cols 0,1 (lonCenter -135,-45): values 5,15,8,35 → counted 4.
   assert.equal(r.counted, 4);
   const severe = r.bands.find((b) => b.name === 'Severe');
   assert.equal(severe.color, '#7f1d1d');
