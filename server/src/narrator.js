@@ -9,7 +9,7 @@ export async function narrate(payload, client) {
     `Severity breakdown: ${bandLines}\nMean: ${stats.mean}, Max: ${stats.max}, Min: ${stats.min}`;
   const res = await client.messages.create({
     model: 'claude-sonnet-5',
-    max_tokens: 300,
+    max_tokens: 1024,
     system: SYSTEM,
     messages: [{ role: 'user', content }],
   });
