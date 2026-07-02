@@ -1230,7 +1230,7 @@ export default function App() {
   return (
     <div className="app">
       <div className="chat-col">
-        <header className="brand">🌍 Earth Observation Copilot</header>
+        <header className="brand">Earth Observation Copilot</header>
         <div className="chat-body">Ask about the planet…</div>
       </div>
       <div className="canvas-col">
@@ -1502,7 +1502,7 @@ export default function App() {
   return (
     <div className="app">
       <div className="chat-col">
-        <header className="brand">🌍 Earth Observation Copilot</header>
+        <header className="brand">Earth Observation Copilot</header>
         <ChatPanel messages={messages} onSend={handleSend} loading={loading} suggestions={SUGGESTIONS} />
       </div>
       <div className="canvas-col">
