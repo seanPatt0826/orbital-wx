@@ -14,20 +14,18 @@ export default function ChatPanel({ messages, onSend, loading, suggestions }) {
   return (
     <div className="chat">
       <div className="chat-scroll">
-        {messages.length === 0 && (
-          <div className="intro">
-            <div className="intro-title">What is happening on Earth?</div>
-            <div className="intro-sub">Ask in plain language, or try an example:</div>
-            <div className="chips">
-              {suggestions.map((s) => (
-                <button key={s} className="chip" onClick={() => onSend(s)}>
-                  <span className="chip-text">{s}</span>
-                  <span className="chip-arrow" />
-                </button>
-              ))}
-            </div>
+        <div className={`intro ${messages.length ? 'intro-hidden' : ''}`}>
+          <div className="intro-title">What is happening on Earth?</div>
+          <div className="intro-sub">Ask in plain language, or try an example:</div>
+          <div className="chips">
+            {suggestions.map((s) => (
+              <button key={s} className="chip" onClick={() => onSend(s)} tabIndex={messages.length ? -1 : 0}>
+                <span className="chip-text">{s}</span>
+                <span className="chip-arrow" />
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
         {messages.map((m, i) => (
           <div key={i} className={`bubble ${m.role}`}>

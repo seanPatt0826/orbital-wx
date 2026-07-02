@@ -100,6 +100,20 @@ body {
   gap: 12px;
 }
 
+.intro {
+  overflow: hidden;
+  max-height: 520px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 0.45s ease, opacity 0.3s ease, transform 0.45s ease, margin 0.45s ease;
+}
+.intro-hidden {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-14px);
+  margin: 0;
+  pointer-events: none;
+}
 .intro-title {
   font-size: 16px;
   font-weight: 600;
