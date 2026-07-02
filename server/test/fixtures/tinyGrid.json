@@ -1,0 +1,8 @@
+{
+  "phenomenon": "test",
+  "unit": "index",
+  "res": 90,
+  "rows": 2,
+  "cols": 4,
+  "values": [5, 15, 55, null, 8, 35, 95, 20]
+}
