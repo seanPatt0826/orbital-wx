@@ -2,15 +2,19 @@
 // events, and coordinates the modules. No fetching, no formatting, no
 // DOM construction happens here.
 
-import { STORAGE_KEY } from './config.js';
-import { searchLocations, fetchForecast } from './api.js';
+import { STORAGE_KEY, POWER_FILL_VALUE } from './config.js';
+import { searchLocations, fetchForecast, fetchClimateNormals, fetchAirQuality } from './api.js';
+import { computeAnomaly, monthKeyFromDate, buildTips } from './insights.js';
 import * as ui from './ui.js';
 import * as mapView from './map.js';
 
 const state = {
   place: null,     // { latitude, longitude, label, timezone }
   units: 'metric',
-  forecast: null
+  forecast: null,
+  normals: null,
+  airQuality: null,
+  anomaly: null
 };
 
 /** Builds the display label once, so every panel shows the same name. */
@@ -40,6 +44,67 @@ async function loadForecast() {
   }
 }
 
+/**
+ * Recomputes the tips from whatever data has successfully arrived.
+ * Called after each panel loads, so advice appears progressively.
+ */
+function refreshTips() {
+  const daily = state.forecast && state.forecast.daily;
+  const current = state.forecast && state.forecast.current;
+  const air = state.airQuality && state.airQuality.current;
+
+  ui.renderTips(buildTips({
+    uvIndexMax: daily ? daily.uv_index_max[0] : null,
+    precipProbabilityMax: daily ? daily.precipitation_probability_max[0] : null,
+    windSpeedKmh: current ? current.wind_speed_10m : null,
+    apparentTemperatureC: current ? current.apparent_temperature : null,
+    usAqi: air ? air.us_aqi : null,
+    anomalyC: state.anomaly
+  }));
+}
+
+/** Reads the baseline metadata POWER reports, rather than hardcoding it. */
+function normalsMeta(data, monthKey, fillValue) {
+  const normals = data.properties.parameter.T2M;
+  return {
+    monthKey,
+    normalC: normals[monthKey] === fillValue ? null : normals[monthKey],
+    baseline: (data.header && data.header.range) || 'unstated',
+    sources: ((data.header && data.header.sources) || []).join(', ') || 'NASA POWER'
+  };
+}
+
+async function loadClimateNormals() {
+  ui.showLoading('anomaly-body');
+  try {
+    const data = await fetchClimateNormals(state.place.latitude, state.place.longitude);
+    state.normals = data;
+
+    const fillValue = (data.header && data.header.fill_value) ?? POWER_FILL_VALUE;
+    const normals = data.properties.parameter.T2M;
+    const monthKey = monthKeyFromDate(new Date());
+    const todayMean = state.forecast ? state.forecast.daily.temperature_2m_mean[0] : null;
+
+    state.anomaly = computeAnomaly(todayMean, normals, monthKey, fillValue);
+
+    ui.renderAnomaly(state.anomaly, normalsMeta(data, monthKey, fillValue), state.units);
+    refreshTips();
+  } catch (error) {
+    ui.showError('anomaly-body', error.message, loadClimateNormals);
+  }
+}
+
+async function loadAirQuality() {
+  ui.showLoading('air-body');
+  try {
+    state.airQuality = await fetchAirQuality(state.place.latitude, state.place.longitude);
+    ui.renderAirQuality(state.airQuality);
+    refreshTips();
+  } catch (error) {
+    ui.showError('air-body', error.message, loadAirQuality);
+  }
+}
+
 async function selectPlace(place) {
   state.place = place;
   ui.hideSuggestions();
@@ -47,7 +112,12 @@ async function selectPlace(place) {
   mapView.flyTo(place.latitude, place.longitude, place.label);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(place));
   document.getElementById('search-input').value = place.label;
+
+  // The forecast must land before the anomaly, which needs today's mean.
   await loadForecast();
+  refreshTips();
+  loadClimateNormals();
+  loadAirQuality();
 }
 
 async function handleSearch(event) {

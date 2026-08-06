@@ -2455,7 +2455,10 @@ Run `npx serve weather` and confirm each item. Do not mark this step complete un
 - [ ] Tab through the entire page: every control has a visible amber focus ring
 - [ ] Search using only the keyboard: type, arrow down, Enter
 - [ ] Enable "Reduce motion" in the OS: the map still moves but panel fades are suppressed
-- [ ] Search the mid-Pacific (`Midway`): confirm the anomaly either resolves or says unavailable, and never shows -999
+- [ ] Confirm the anomaly never shows -999. Note: POWER's MERRA-2 grid was verified to
+      cover ocean, Sahara and Antarctica with real values, so the fill-value path is
+      defensive rather than routine. `Midway` does not geocode, so it tests the
+      "no location matches" path instead
 - [ ] Confirm no emojis anywhere in the UI
 - [ ] Confirm the browser console is free of errors
 

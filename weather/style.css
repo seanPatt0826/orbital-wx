@@ -190,6 +190,33 @@ body {
 .daily__condition { display: flex; align-items: center; gap: var(--space-2); }
 .daily .num { text-align: right; font-variant-numeric: tabular-nums; }
 
+/* ===== Anomaly =========================================================== */
+.anomaly__value { margin: 0; font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; }
+.anomaly__value.is-warm { color: var(--accent); }
+.anomaly__value.is-cool { color: var(--cool); }
+.anomaly__claim { margin: var(--space-2) 0 0; font-family: var(--sans); font-size: 14px; }
+
+/* ===== Air quality ======================================================= */
+.air__value { margin: 0; font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
+.air__value[data-level="1"], .air__value[data-level="2"] { color: var(--cool); }
+.air__value[data-level="3"], .air__value[data-level="4"] { color: var(--accent); }
+.air__value[data-level="5"], .air__value[data-level="6"] { color: var(--danger); }
+.air__label { margin: var(--space-1) 0 var(--space-3); color: var(--muted); font-size: 12px; }
+
+/* ===== Tips ============================================================== */
+.tips { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.tip { border-left: 2px solid var(--hairline); padding-left: var(--space-3); }
+.tip--caution { border-left-color: var(--accent); }
+.tip--warning { border-left-color: var(--danger); }
+.tip--info { border-left-color: var(--cool); }
+.tip__title { margin: 0; font-size: 12px; letter-spacing: 0.06em; }
+.tip__body { margin: var(--space-1) 0 0; font-family: var(--sans); color: var(--muted); font-size: 13px; }
+
+.state { color: var(--muted); font-size: 12px; }
+.state--error { color: var(--danger); }
+.state__message { margin: 0 0 var(--space-2); }
+.btn--small { padding: var(--space-1) var(--space-2); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
