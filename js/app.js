@@ -3,7 +3,10 @@
 // DOM construction happens here.
 
 import { STORAGE_KEY, POWER_FILL_VALUE } from './config.js';
-import { searchLocations, fetchForecast, fetchClimateNormals, fetchAirQuality } from './api.js';
+import {
+  searchLocations, fetchForecast, fetchClimateNormals, fetchAirQuality,
+  fetchLatestEpic, buildEpicImageUrl
+} from './api.js';
 import { computeAnomaly, monthKeyFromDate, buildTips } from './insights.js';
 import * as ui from './ui.js';
 import * as mapView from './map.js';
@@ -149,6 +152,17 @@ function restoreLastPlace() {
   }
 }
 
+/** Loads once at startup: EPIC does not depend on the searched location. */
+async function loadEpic() {
+  ui.showLoading('epic-body');
+  try {
+    const entry = await fetchLatestEpic();
+    ui.renderEpic(entry, buildEpicImageUrl(entry));
+  } catch (error) {
+    ui.showError('epic-body', error.message, loadEpic);
+  }
+}
+
 function describeLayer(config) {
   document.getElementById('map-note').textContent =
     `${config.description} Layer: ${config.layer}, imagery dated ${mapView.gibsDateString()}.`;
@@ -167,6 +181,7 @@ function init() {
   if (!restoreLastPlace()) {
     ui.showError('current-body', 'Search for a location to begin.', null);
   }
+  loadEpic();
 }
 
 init();
