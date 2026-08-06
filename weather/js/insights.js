@@ -1,7 +1,7 @@
 // Pure logic. No network, no DOM, no side effects.
 // Everything here is unit tested, which is only possible because it is pure.
 
-import { WMO_CODES } from './config.js';
+import { WMO_CODES, MONTH_KEYS } from './config.js';
 
 // Rendered whenever a value is genuinely unavailable. Never render a zero
 // or a guess in its place.
@@ -46,4 +46,27 @@ export function formatMeasurement(value, unit, digits = 1) {
   if (!isNumber(value)) return EM_DASH;
   // trim() covers the unitless case, such as the UV index.
   return `${value.toFixed(digits)} ${unit}`.trim();
+}
+
+/** Converts a Date into the JAN..DEC key NASA POWER uses for climatology. */
+export function monthKeyFromDate(date) {
+  return MONTH_KEYS[date.getMonth()];
+}
+
+/**
+ * The headline number: how far today's mean temperature sits from the
+ * long-term average for this month at this exact point.
+ *
+ * Returns null rather than a guess whenever the comparison cannot be made
+ * honestly, including when POWER reports its fill value (-999) for the month.
+ */
+export function computeAnomaly(todayMeanC, normals, monthKey, fillValue) {
+  if (!isNumber(todayMeanC)) return null;
+  if (!normals || typeof normals !== 'object') return null;
+
+  const normal = normals[monthKey];
+  if (!isNumber(normal)) return null;
+  if (normal === fillValue) return null;
+
+  return todayMeanC - normal;
 }
