@@ -5,6 +5,7 @@
 import { STORAGE_KEY } from './config.js';
 import { searchLocations, fetchForecast } from './api.js';
 import * as ui from './ui.js';
+import * as mapView from './map.js';
 
 const state = {
   place: null,     // { latitude, longitude, label, timezone }
@@ -43,6 +44,7 @@ async function selectPlace(place) {
   state.place = place;
   ui.hideSuggestions();
   ui.setDocumentLocation(place.label);
+  mapView.flyTo(place.latitude, place.longitude, place.label);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(place));
   document.getElementById('search-input').value = place.label;
   await loadForecast();
@@ -77,8 +79,21 @@ function restoreLastPlace() {
   }
 }
 
+function describeLayer(config) {
+  document.getElementById('map-note').textContent =
+    `${config.description} Layer: ${config.layer}, imagery dated ${mapView.gibsDateString()}.`;
+}
+
+function setupMap() {
+  mapView.initMap('map');
+  const active = mapView.renderLayerSwitch('layer-switch', describeLayer);
+  describeLayer(active);
+}
+
 function init() {
   document.getElementById('search-form').addEventListener('submit', handleSearch);
+  // The map must exist before selectPlace can fly to a restored location.
+  setupMap();
   if (!restoreLastPlace()) {
     ui.showError('current-body', 'Search for a location to begin.', null);
   }
