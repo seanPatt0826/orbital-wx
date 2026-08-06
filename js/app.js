@@ -25,11 +25,17 @@ function toPlace(result) {
 
 async function loadForecast() {
   ui.showLoading('current-body');
+  ui.showLoading('hourly-body');
+  ui.showLoading('daily-body');
   try {
     state.forecast = await fetchForecast(state.place.latitude, state.place.longitude);
     ui.renderCurrent(state.forecast, state.place, state.units);
+    ui.renderHourly(state.forecast, state.units);
+    ui.renderDaily(state.forecast, state.units);
   } catch (error) {
     ui.showError('current-body', error.message, loadForecast);
+    ui.showError('hourly-body', error.message, loadForecast);
+    ui.showError('daily-body', error.message, loadForecast);
   }
 }
 

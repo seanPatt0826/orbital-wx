@@ -119,6 +119,37 @@ body {
   .panel--wide { grid-column: 1 / -1; }
 }
 
+/* ===== Readouts ========================================================== */
+.readouts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-4); }
+
+.readout { display: flex; justify-content: space-between; gap: var(--space-3); border-bottom: 1px solid var(--hairline); padding: var(--space-2) 0; }
+.readout__label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.readout__value { font-variant-numeric: tabular-nums; }
+
+.current__head { display: flex; gap: var(--space-4); align-items: center; margin-bottom: var(--space-4); }
+.current__place { margin: 0; font-size: 12px; letter-spacing: 0.08em; color: var(--muted); }
+.current__temp { margin: var(--space-1) 0; font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.current__condition { margin: 0; color: var(--accent); }
+
+.icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.icon--large { width: 56px; height: 56px; color: var(--accent); }
+.icon--small { width: 16px; height: 16px; }
+
+/* ===== Hourly strip ====================================================== */
+.hourly { display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-2); }
+.hourly__cell { flex: 0 0 auto; width: 56px; display: grid; justify-items: center; gap: var(--space-1); }
+.hourly__time, .hourly__precip { font-size: 10px; color: var(--muted); }
+.hourly__temp { font-size: 12px; font-variant-numeric: tabular-nums; }
+.hourly__bar { width: 6px; height: 72px; background: var(--panel-raised); display: flex; align-items: flex-end; }
+.hourly__fill { width: 100%; background: var(--accent); }
+
+/* ===== Daily table ======================================================= */
+.daily { width: 100%; border-collapse: collapse; }
+.daily th { text-align: left; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; padding: var(--space-2); border-bottom: 1px solid var(--hairline); }
+.daily td { padding: var(--space-2); border-bottom: 1px solid var(--hairline); }
+.daily__condition { display: flex; align-items: center; gap: var(--space-2); }
+.daily .num { text-align: right; font-variant-numeric: tabular-nums; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
