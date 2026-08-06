@@ -68,7 +68,7 @@ This exists only so Node treats `.js` files as ES modules when running tests. It
   "type": "module",
   "description": "Keyless weather app fusing Open-Meteo forecasts with NASA Earth observation data",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test",
     "start": "npx serve ."
   }
 }
@@ -484,7 +484,7 @@ on the `file://` protocol. VS Code's Live Server extension is an equivalent alte
 
 ```
 cd weather
-node --test test/
+node --test
 ```
 
 No installation required.
@@ -600,7 +600,7 @@ test('formatMeasurement omits the separator when there is no unit', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: FAIL, cannot find module `../js/insights.js`.
 
 - [ ] **Step 3: Write the implementation**
@@ -661,7 +661,7 @@ export function formatMeasurement(value, unit, digits = 1) {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: PASS, 10 tests.
 
 - [ ] **Step 5: Commit**
@@ -714,7 +714,7 @@ test('computeAnomaly returns null when inputs are missing', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: FAIL, `monthKeyFromDate is not defined`.
 
 - [ ] **Step 3: Write the implementation**
@@ -748,7 +748,7 @@ export function computeAnomaly(todayMeanC, normals, monthKey, fillValue) {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: PASS, 14 tests.
 
 - [ ] **Step 5: Commit**
@@ -834,7 +834,7 @@ test('every tip carries an id, severity, title and body', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: FAIL, `aqiCategory is not defined`.
 
 - [ ] **Step 3: Write the implementation**
@@ -963,7 +963,7 @@ export function buildTips(conditions) {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: PASS, 21 tests.
 
 - [ ] **Step 5: Commit**
@@ -1072,7 +1072,7 @@ test('ApiError records which source failed', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: FAIL, cannot find module `../js/api.js`.
 
 - [ ] **Step 3: Write the implementation**
@@ -1224,7 +1224,7 @@ export async function fetchLatestEpic() {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: PASS, 28 tests total across both files.
 
 - [ ] **Step 5: Commit**
@@ -1489,7 +1489,7 @@ Expected: current conditions render with a real temperature, feels-like, humidit
 
 - [ ] **Step 4: Confirm the tests still pass**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: PASS, 28 tests.
 
 - [ ] **Step 5: Commit**
@@ -2107,7 +2107,7 @@ Expected: the anomaly card shows a signed value with the claim sentence and cite
 
 - [ ] **Step 5: Confirm the tests still pass**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: PASS, 28 tests.
 
 - [ ] **Step 6: Commit**
@@ -2436,7 +2436,7 @@ The corner registration ticks are the signature that separates this from a gener
 
 - [ ] **Step 3: Run the full test suite**
 
-Run: `cd weather && node --test test/`
+Run: `cd weather && node --test`
 Expected: PASS, 28 tests, zero failures.
 
 - [ ] **Step 4: Work through the manual verification checklist**
@@ -2472,7 +2472,7 @@ git commit -m "feat: add offline handling and mission console visual pass"
 
 The application is complete when:
 
-1. `cd weather && node --test test/` reports 28 passing tests
+1. `cd weather && node --test` reports 28 passing tests
 2. Every item in the Task 12 manual checklist passes
 3. No API key exists anywhere in the repository
 4. No panel can render a fabricated number, including POWER's -999 fill value
