@@ -5,7 +5,9 @@ import {
   kmhToMph,
   describeWeatherCode,
   formatTemperature,
-  formatMeasurement
+  formatMeasurement,
+  monthKeyFromDate,
+  computeAnomaly
 } from '../js/insights.js';
 
 test('celsiusToFahrenheit converts known reference points', () => {
@@ -59,4 +61,27 @@ test('formatMeasurement omits the separator when there is no unit', () => {
   // as slightly less than 7.85, so toFixed(1) yields "7.8" rather than the
   // "7.9" decimal intuition suggests. That is correct arithmetic, not a bug.
   assert.equal(formatMeasurement(7.8, '', 1), '7.8');
+});
+
+test('monthKeyFromDate returns the POWER month abbreviation', () => {
+  assert.equal(monthKeyFromDate(new Date('2026-08-06T12:00:00Z')), 'AUG');
+  assert.equal(monthKeyFromDate(new Date('2026-01-31T12:00:00Z')), 'JAN');
+  assert.equal(monthKeyFromDate(new Date('2026-12-01T12:00:00Z')), 'DEC');
+});
+
+test('computeAnomaly subtracts the monthly normal from today mean', () => {
+  const normals = { AUG: 20.47, JAN: 12.91 };
+  // Real verified figures: Lisbon forecast mean 23.9 against an August normal of 20.47.
+  assert.ok(Math.abs(computeAnomaly(23.9, normals, 'AUG', -999) - 3.43) < 0.001);
+  assert.ok(Math.abs(computeAnomaly(10.0, normals, 'JAN', -999) - -2.91) < 0.001);
+});
+
+test('computeAnomaly returns null when the normal is a fill value', () => {
+  assert.equal(computeAnomaly(23.9, { AUG: -999 }, 'AUG', -999), null);
+});
+
+test('computeAnomaly returns null when inputs are missing', () => {
+  assert.equal(computeAnomaly(null, { AUG: 20.47 }, 'AUG', -999), null);
+  assert.equal(computeAnomaly(23.9, null, 'AUG', -999), null);
+  assert.equal(computeAnomaly(23.9, { AUG: 20.47 }, 'SEP', -999), null);
 });
