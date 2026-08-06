@@ -2450,7 +2450,10 @@ Run `npx serve weather` and confirm each item. Do not mark this step complete un
 - [ ] The C and F toggle changes every temperature, including the anomaly, with no network traffic
 - [ ] "Use my location" works, or reports a clear reason if permission is denied
 - [ ] Reload: the last location is restored from `localStorage`
-- [ ] Open DevTools, throttle to Offline, reload: the offline banner appears and every panel shows an error state with a working Retry
+- [ ] Open DevTools and set Offline WITHOUT reloading: the banner appears immediately via the
+      window offline event. Then search a new city to drive the panels into their error states,
+      go back online, and confirm Retry recovers them. Do not reload while offline: DevTools
+      blocks localhost too, so the page itself would fail to load and nothing would be tested
 - [ ] Resize to 360px wide: single column, no horizontal page scroll, the hourly strip scrolls within itself
 - [ ] Tab through the entire page: every control has a visible amber focus ring
 - [ ] Search using only the keyboard: type, arrow down, Enter
