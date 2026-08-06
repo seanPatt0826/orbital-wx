@@ -281,6 +281,40 @@ export function renderTips(tips) {
   body.appendChild(list);
 }
 
+/**
+ * The most recent whole-Earth capture from EPIC aboard NOAA DSCOVR.
+ * Independent of the searched location: this is the planet, not the city.
+ */
+export function renderEpic(entry, imageUrl) {
+  const body = $('epic-body');
+  clear(body);
+
+  if (!entry || !imageUrl) {
+    body.appendChild(element('p', 'state', 'EPIC imagery unavailable right now.'));
+    return;
+  }
+
+  const figure = element('figure', 'epic');
+  const image = document.createElement('img');
+  image.className = 'epic__image';
+  image.src = imageUrl;
+  image.loading = 'lazy';
+  image.alt = `Full disc image of Earth captured by NASA EPIC on ${entry.date}`;
+  figure.appendChild(image);
+
+  const caption = element('figcaption', 'epic__caption');
+  caption.appendChild(element('p', 'epic__date', `Captured ${entry.date} UTC`));
+  caption.appendChild(element('p', 'epic__text', entry.caption || ''));
+
+  if (entry.centroid_coordinates) {
+    const { lat, lon } = entry.centroid_coordinates;
+    caption.appendChild(element('p', 'panel__note',
+      `Sub-satellite point: ${lat.toFixed(2)}, ${lon.toFixed(2)}`));
+  }
+  figure.appendChild(caption);
+  body.appendChild(figure);
+}
+
 /** Formats an ISO date as a short weekday, using the location's own days. */
 function weekdayLabel(isoDate, index) {
   if (index === 0) return 'Today';

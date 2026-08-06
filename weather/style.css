@@ -217,6 +217,17 @@ body {
 .state__message { margin: 0 0 var(--space-2); }
 .btn--small { padding: var(--space-1) var(--space-2); }
 
+/* ===== EPIC ============================================================== */
+.epic { margin: 0; display: grid; gap: var(--space-4); align-items: start; }
+.epic__image { width: 100%; max-width: 420px; height: auto; display: block; background: var(--panel-raised); border: 1px solid var(--hairline); }
+.epic__caption { color: var(--muted); }
+.epic__date { margin: 0 0 var(--space-2); color: var(--text); font-size: 12px; letter-spacing: 0.08em; }
+.epic__text { margin: 0; font-family: var(--sans); font-size: 13px; }
+
+@media (min-width: 700px) {
+  .epic { grid-template-columns: minmax(0, 420px) minmax(0, 1fr); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
