@@ -1,0 +1,11 @@
+{
+  "name": "nasa-weather",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Keyless weather app fusing Open-Meteo forecasts with NASA Earth observation data",
+  "scripts": {
+    "test": "node --test test/",
+    "start": "npx serve ."
+  }
+}
