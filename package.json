@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Keyless weather app fusing Open-Meteo forecasts with NASA Earth observation data",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test",
     "start": "npx serve ."
   }
 }

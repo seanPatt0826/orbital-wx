@@ -19,8 +19,12 @@ on the `file://` protocol. VS Code's Live Server extension is an equivalent alte
 
 ```
 cd weather
-node --test test/
+node --test
 ```
+
+Node's test runner discovers `test/*.test.js` from the current directory.
+Passing the directory explicitly (`node --test test/`) does not work on this
+Node build: it tries to load the directory as a single module and fails.
 
 No installation required.
 
