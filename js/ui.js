@@ -5,6 +5,7 @@ import {
   describeWeatherCode,
   formatTemperature,
   formatMeasurement,
+  aqiCategory,
   kmhToMph,
   EM_DASH
 } from './insights.js';
@@ -204,6 +205,80 @@ export function renderHourly(data, units) {
     strip.appendChild(cell);
   }
   body.appendChild(strip);
+}
+
+/**
+ * The headline. Shows the signed difference, states exactly what was
+ * compared, and cites the baseline period POWER itself reported.
+ */
+export function renderAnomaly(anomalyC, meta, units) {
+  const body = $('anomaly-body');
+  clear(body);
+
+  if (anomalyC === null) {
+    body.appendChild(element('p', 'state', 'Climate normals unavailable for this point.'));
+    return;
+  }
+
+  const warmer = anomalyC >= 0;
+  const magnitude = Math.abs(anomalyC);
+  // This is a temperature DIFFERENCE, not a temperature. It converts with
+  // the 9/5 ratio alone. Do not use celsiusToFahrenheit here: adding the
+  // 32 degree offset to a difference would be wrong by 32 every time.
+  const shown = units === 'imperial'
+    ? `${(magnitude * 9 / 5).toFixed(1)} F`
+    : `${magnitude.toFixed(1)} C`;
+
+  const value = element('p', `anomaly__value ${warmer ? 'is-warm' : 'is-cool'}`);
+  value.textContent = `${warmer ? '+' : '-'}${shown}`;
+  body.appendChild(value);
+
+  body.appendChild(element(
+    'p',
+    'anomaly__claim',
+    `Today is ${shown} ${warmer ? 'warmer' : 'cooler'} than the ${meta.monthKey} average for this location.`
+  ));
+
+  const normalShown = formatTemperature(meta.normalC, units);
+  body.appendChild(element('p', 'panel__note',
+    `Long-term ${meta.monthKey} mean here: ${normalShown}. Baseline: ${meta.baseline}. Source: ${meta.sources}.`));
+}
+
+export function renderAirQuality(data) {
+  const body = $('air-body');
+  clear(body);
+
+  const current = (data && data.current) || {};
+  const category = aqiCategory(current.us_aqi);
+
+  const value = element('p', 'air__value', category ? String(current.us_aqi) : EM_DASH);
+  if (category) value.dataset.level = String(category.level);
+  body.appendChild(value);
+  body.appendChild(element('p', 'air__label', category ? category.label : 'Unavailable'));
+
+  const grid = element('div', 'readouts');
+  grid.appendChild(readout('PM2.5', formatMeasurement(current.pm2_5, 'ug/m3', 1)));
+  grid.appendChild(readout('PM10', formatMeasurement(current.pm10, 'ug/m3', 1)));
+  body.appendChild(grid);
+}
+
+export function renderTips(tips) {
+  const body = $('tips-body');
+  clear(body);
+
+  if (tips.length === 0) {
+    body.appendChild(element('p', 'state', 'No advisories. Conditions are unremarkable today.'));
+    return;
+  }
+
+  const list = element('ul', 'tips');
+  for (const tip of tips) {
+    const item = element('li', `tip tip--${tip.severity}`);
+    item.appendChild(element('p', 'tip__title', tip.title));
+    item.appendChild(element('p', 'tip__body', tip.body));
+    list.appendChild(item);
+  }
+  body.appendChild(list);
 }
 
 /** Formats an ISO date as a short weekday, using the location's own days. */
