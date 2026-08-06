@@ -140,6 +140,57 @@ async function handleSearch(event) {
   }
 }
 
+/**
+ * Open-Meteo has no reverse geocoding, so a geolocated point is labelled
+ * with its coordinates. Guessing a nearby city name would be fabrication.
+ */
+function handleGeolocate() {
+  if (!navigator.geolocation) {
+    ui.showError('current-body', 'This browser does not support geolocation.', null);
+    return;
+  }
+
+  ui.showLoading('current-body');
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      selectPlace({
+        latitude,
+        longitude,
+        timezone: 'auto',
+        label: `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`
+      });
+    },
+    (error) => {
+      ui.showError('current-body', `Location unavailable: ${error.message}`, null);
+    },
+    { timeout: 10000, maximumAge: 300000 }
+  );
+}
+
+/** Re-renders from data already in memory; changing units refetches nothing. */
+function setUnits(units) {
+  state.units = units;
+
+  const metricBtn = document.getElementById('unit-metric');
+  const imperialBtn = document.getElementById('unit-imperial');
+  metricBtn.classList.toggle('is-active', units === 'metric');
+  imperialBtn.classList.toggle('is-active', units === 'imperial');
+  metricBtn.setAttribute('aria-pressed', String(units === 'metric'));
+  imperialBtn.setAttribute('aria-pressed', String(units === 'imperial'));
+
+  if (!state.forecast) return;
+  ui.renderCurrent(state.forecast, state.place, units);
+  ui.renderHourly(state.forecast, units);
+  ui.renderDaily(state.forecast, units);
+
+  if (state.anomaly !== null && state.normals) {
+    const fillValue = (state.normals.header && state.normals.header.fill_value) ?? POWER_FILL_VALUE;
+    const monthKey = monthKeyFromDate(new Date());
+    ui.renderAnomaly(state.anomaly, normalsMeta(state.normals, monthKey, fillValue), units);
+  }
+}
+
 function restoreLastPlace() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return false;
@@ -176,6 +227,11 @@ function setupMap() {
 
 function init() {
   document.getElementById('search-form').addEventListener('submit', handleSearch);
+  document.getElementById('geolocate-btn').addEventListener('click', handleGeolocate);
+  document.getElementById('unit-metric').addEventListener('click', () => setUnits('metric'));
+  document.getElementById('unit-imperial').addEventListener('click', () => setUnits('imperial'));
+  ui.enableSuggestionKeyboard();
+
   // The map must exist before selectPlace can fly to a restored location.
   setupMap();
   if (!restoreLastPlace()) {
