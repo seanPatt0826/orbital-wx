@@ -7,7 +7,9 @@ import {
   formatTemperature,
   formatMeasurement,
   monthKeyFromDate,
-  computeAnomaly
+  computeAnomaly,
+  aqiCategory,
+  buildTips
 } from '../js/insights.js';
 
 test('celsiusToFahrenheit converts known reference points', () => {
@@ -84,4 +86,60 @@ test('computeAnomaly returns null when inputs are missing', () => {
   assert.equal(computeAnomaly(null, { AUG: 20.47 }, 'AUG', -999), null);
   assert.equal(computeAnomaly(23.9, null, 'AUG', -999), null);
   assert.equal(computeAnomaly(23.9, { AUG: 20.47 }, 'SEP', -999), null);
+});
+
+test('aqiCategory classifies each US AQI band', () => {
+  assert.deepEqual(aqiCategory(0), { label: 'Good', level: 1 });
+  assert.deepEqual(aqiCategory(50), { label: 'Good', level: 1 });
+  assert.deepEqual(aqiCategory(51), { label: 'Moderate', level: 2 });
+  assert.deepEqual(aqiCategory(101), { label: 'Unhealthy for sensitive groups', level: 3 });
+  assert.deepEqual(aqiCategory(151), { label: 'Unhealthy', level: 4 });
+  assert.deepEqual(aqiCategory(201), { label: 'Very unhealthy', level: 5 });
+  assert.deepEqual(aqiCategory(301), { label: 'Hazardous', level: 6 });
+});
+
+test('aqiCategory returns null for missing input', () => {
+  assert.equal(aqiCategory(null), null);
+});
+
+test('buildTips returns an empty array for benign conditions', () => {
+  const tips = buildTips({
+    uvIndexMax: 2, windSpeedKmh: 5, usAqi: 20,
+    precipProbabilityMax: 5, anomalyC: 0.4, apparentTemperatureC: 18
+  });
+  assert.deepEqual(tips, []);
+});
+
+test('buildTips fires exactly at each threshold boundary', () => {
+  const ids = (c) => buildTips(c).map((t) => t.id);
+  assert.deepEqual(ids({ uvIndexMax: 6 }), ['uv']);
+  assert.deepEqual(ids({ uvIndexMax: 5.9 }), []);
+  assert.deepEqual(ids({ windSpeedKmh: 40 }), ['wind']);
+  assert.deepEqual(ids({ windSpeedKmh: 39.9 }), []);
+  assert.deepEqual(ids({ precipProbabilityMax: 60 }), ['precip']);
+  assert.deepEqual(ids({ apparentTemperatureC: 32 }), ['heat']);
+  assert.deepEqual(ids({ apparentTemperatureC: 0 }), ['freeze']);
+  assert.deepEqual(ids({ anomalyC: 3 }), ['anomaly-warm']);
+  assert.deepEqual(ids({ anomalyC: -3 }), ['anomaly-cool']);
+});
+
+test('buildTips emits both the health tip and the aerosol cross-link when AQI is elevated', () => {
+  const ids = buildTips({ usAqi: 101 }).map((t) => t.id);
+  assert.deepEqual(ids, ['aqi', 'aqi-aerosol']);
+});
+
+test('buildTips ignores missing values entirely', () => {
+  assert.deepEqual(buildTips({}), []);
+  assert.deepEqual(buildTips({ uvIndexMax: null, usAqi: null }), []);
+});
+
+test('every tip carries an id, severity, title and body', () => {
+  const tips = buildTips({ uvIndexMax: 9, windSpeedKmh: 55, usAqi: 160 });
+  assert.ok(tips.length > 0);
+  for (const tip of tips) {
+    assert.equal(typeof tip.id, 'string');
+    assert.ok(['info', 'caution', 'warning'].includes(tip.severity));
+    assert.ok(tip.title.length > 0);
+    assert.ok(tip.body.length > 0);
+  }
 });
