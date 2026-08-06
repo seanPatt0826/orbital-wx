@@ -146,6 +146,47 @@ export function hideSuggestions() {
 }
 
 /**
+ * Arrow keys move through the suggestion listbox, Enter selects, Escape
+ * dismisses. Without this the search is unusable without a mouse.
+ */
+export function enableSuggestionKeyboard() {
+  const input = $('search-input');
+  const list = $('search-results');
+  let activeIndex = -1;
+
+  function setActive(index) {
+    const items = Array.from(list.children);
+    if (items.length === 0) return;
+    activeIndex = (index + items.length) % items.length;
+    items.forEach((item, i) => {
+      const isActive = i === activeIndex;
+      item.classList.toggle('is-active', isActive);
+      item.setAttribute('aria-selected', String(isActive));
+      if (isActive) input.setAttribute('aria-activedescendant', item.id);
+    });
+  }
+
+  input.addEventListener('keydown', (event) => {
+    if (list.hidden) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActive(activeIndex + 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActive(activeIndex - 1);
+    } else if (event.key === 'Enter' && activeIndex >= 0) {
+      event.preventDefault();
+      list.children[activeIndex].click();
+      activeIndex = -1;
+    } else if (event.key === 'Escape') {
+      hideSuggestions();
+      activeIndex = -1;
+    }
+  });
+}
+
+/**
  * Finds the index of the current hour within the hourly series.
  * Open-Meteo returns 168 hours starting at midnight local time, so the
  * strip must start from now rather than from the top of the array.

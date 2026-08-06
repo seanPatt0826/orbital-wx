@@ -149,6 +149,33 @@ body {
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* ===== Search ============================================================ */
+.search { position: relative; }
+.search__input {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  padding: var(--space-2) var(--space-3);
+  min-width: 220px;
+}
+.search__results {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  z-index: 1000;
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.search__result { padding: var(--space-2) var(--space-3); cursor: pointer; font-size: 12px; }
+.search__result:hover, .search__result.is-active { background: var(--accent); color: var(--bg); }
+.unit-toggle { display: flex; }
+
 /* Leaflet's default panel is white; force it into the console palette. */
 .leaflet-container { background: var(--panel-raised); }
 .leaflet-control-attribution {
