@@ -191,6 +191,15 @@ function setUnits(units) {
   }
 }
 
+/** Surfaces connectivity loss rather than letting requests fail silently. */
+function watchConnectivity() {
+  const banner = document.getElementById('offline-banner');
+  const update = () => { banner.hidden = navigator.onLine; };
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
+  update();
+}
+
 function restoreLastPlace() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return false;
@@ -231,6 +240,7 @@ function init() {
   document.getElementById('unit-metric').addEventListener('click', () => setUnits('metric'));
   document.getElementById('unit-imperial').addEventListener('click', () => setUnits('imperial'));
   ui.enableSuggestionKeyboard();
+  watchConnectivity();
 
   // The map must exist before selectPlace can fly to a restored location.
   setupMap();

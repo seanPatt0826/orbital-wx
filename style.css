@@ -255,6 +255,45 @@ body {
   .epic { grid-template-columns: minmax(0, 420px) minmax(0, 1fr); }
 }
 
+/* ===== Panel registration ticks ========================================== */
+/* Small amber brackets at opposing corners, the way markings appear on
+   instrument housings. This is the detail that separates the app from a
+   generic dark dashboard. */
+.panel::before,
+.panel::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: var(--accent);
+  opacity: 0.55;
+}
+.panel::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
+.panel::after { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
+
+/* ===== Offline banner ==================================================== */
+.offline-banner {
+  padding: var(--space-2) var(--space-5);
+  background: var(--danger);
+  color: #12100e;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ===== Colophon ========================================================== */
+.colophon {
+  border-top: 1px solid var(--hairline);
+  padding: var(--space-5);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.colophon p { margin: 0; font-family: var(--sans); font-size: 12px; color: var(--muted); max-width: 70ch; }
+
+/* Values fade rather than jump when a panel re-renders. */
+.panel__body { animation: fade-in 220ms ease-out; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
