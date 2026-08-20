@@ -246,6 +246,11 @@ export function renderHourly(data, units) {
       typeof hour.precipProbability === 'number' ? `${hour.precipProbability}%` : EM_DASH));
     strip.appendChild(cell);
   }
+  // A region that scrolls only under the pointer is unreachable by keyboard,
+  // so it is made focusable and named for screen readers.
+  strip.tabIndex = 0;
+  strip.setAttribute('role', 'region');
+  strip.setAttribute('aria-label', 'Hourly forecast, scrolls horizontally');
   body.appendChild(strip);
 }
 
@@ -399,5 +404,14 @@ export function renderDaily(data, units) {
     tbody.appendChild(row);
   }
   table.appendChild(tbody);
-  body.appendChild(table);
+
+  // Six columns do not fit a 360px viewport. Without this wrapper the table
+  // widens the whole document and the entire page scrolls sideways; with it
+  // the table scrolls inside its own panel, as the hourly strip does.
+  const scroller = element('div', 'table-scroll');
+  scroller.tabIndex = 0;
+  scroller.setAttribute('role', 'region');
+  scroller.setAttribute('aria-label', 'Seven day forecast, scrolls horizontally');
+  scroller.appendChild(table);
+  body.appendChild(scroller);
 }
