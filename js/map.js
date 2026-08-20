@@ -21,13 +21,24 @@ function layerById(id) {
 }
 
 export function initMap(elementId) {
-  map = L.map(elementId, {
+  const element = document.getElementById(elementId);
+  map = L.map(element, {
     center: [20, 0],
     zoom: 2,
     worldCopyJump: true,
     attributionControl: true
   });
   setLayer(activeLayerId);
+
+  // Leaflet measures its container once and caches the result. On desktop the
+  // map panel stretches to match the readout column, which only reaches its
+  // full height after the forecast, anomaly and tips have loaded - long after
+  // init. Without this the map keeps its startup size and leaves a band of
+  // empty panel with no tiles in it.
+  if (typeof ResizeObserver === 'function') {
+    new ResizeObserver(() => map.invalidateSize({ animate: false })).observe(element);
+  }
+
   return map;
 }
 
