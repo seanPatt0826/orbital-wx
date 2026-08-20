@@ -64,14 +64,16 @@ the bundle ships with a default one, which `map.js` clears before the viewer is
 created, so an accidental ion request fails loudly rather than quietly working.
 Every tile comes from NASA GIBS.
 
-NASA's Blue Marble sits underneath the daily imagery. MODIS and VIIRS image in
-strips and consecutive orbits do not quite meet near the equator; those gaps
-arrive as black pixels in a JPEG, which has no alpha channel, so they are keyed
-out and Blue Marble shows through instead of a black tear.
+NASA's Blue Marble sits underneath the daily imagery. Both instruments image in
+strips, and where a day's swath is missing the gap arrives as black pixels in a
+JPEG, which has no alpha channel and so cannot reveal anything on its own. Those
+are keyed out, and Blue Marble shows through instead of a black tear.
 
-VIIRS leads the layer list because its 3040km swath overlaps between orbits and
-covers the whole planet daily. MODIS Terra is still available but its 2330km
-swath leaves those gaps, and its label and description say so.
+VIIRS leads the layer list, and is the default, because its 3040km swath overlaps
+between consecutive orbits and covers the whole planet every day. MODIS Terra is
+still available but its 2330km swath does not quite meet at the equator, leaving
+visible gaps; its label and description say so, so the gaps read as instrument
+behaviour rather than a broken layer.
 
 Thematic layers legitimately have no polar coverage - the aerosol layer returns
 404 for its entire southernmost tile row while true colour serves it fine. That
