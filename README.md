@@ -2,6 +2,8 @@
 
 Weather forecasts fused with NASA Earth observation data. No API keys, no build step, no server.
 
+Live: <https://seanpatt0826.github.io/orbital-wx/>
+
 ## Run
 
 From the repository root:
@@ -27,6 +29,19 @@ Passing the directory explicitly (`node --test test/`) does not work on this
 Node build: it tries to load the directory as a single module and fails.
 
 No installation required.
+
+## Deploy
+
+GitHub Pages serves the `gh-pages` branch from its root, but the app lives in
+`weather/` on `main`. The bridge is a subtree split, run from the repo root:
+
+```
+git subtree split --prefix=weather -b gh-pages
+git push --force origin gh-pages:gh-pages
+```
+
+Run both lines after any change under `weather/` that should go live. Nothing
+else is needed: no build, no secrets, no environment variables.
 
 ## Data sources
 
