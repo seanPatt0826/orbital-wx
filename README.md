@@ -56,7 +56,25 @@ All keyless.
 | NASA GIBS | satellite tile layers |
 | NASA EPIC | whole-Earth imagery from NOAA DSCOVR |
 
+## The globe
+
+The satellite view is a 3D globe rendered with CesiumJS, loaded as a UMD bundle
+from a CDN so there is still no build step. No Cesium ion access token is used:
+the bundle ships with a default one, which `map.js` clears before the viewer is
+created, so an accidental ion request fails loudly rather than quietly working.
+Every tile comes from NASA GIBS.
+
+NASA's Blue Marble sits underneath the daily imagery. MODIS and VIIRS image in
+strips and consecutive orbits do not quite meet near the equator; those gaps
+arrive as black pixels in a JPEG, which has no alpha channel, so they are keyed
+out and Blue Marble shows through instead of a black tear.
+
+Thematic layers legitimately have no polar coverage - the aerosol layer returns
+404 for its entire southernmost tile row while true colour serves it fine. That
+is data absence, and it is logged rather than surfaced as an error.
+
 ## Attribution
 
 Weather and air quality data by Open-Meteo. Climate normals from the NASA POWER project.
 Imagery courtesy of NASA EOSDIS GIBS and the NASA EPIC team aboard NOAA DSCOVR.
+Globe rendered with CesiumJS (Apache 2.0).
