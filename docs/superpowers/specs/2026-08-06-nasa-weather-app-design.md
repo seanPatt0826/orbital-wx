@@ -4,6 +4,14 @@
 **Location in repo:** new `weather/` folder, independent of the existing Earth Observation Copilot
 **Stack:** vanilla HTML + CSS + JavaScript (ES modules), Leaflet via CDN, no build step, no API keys
 
+> **Superseded in part, 2026-08-20:** the flat Leaflet map was replaced by a
+> CesiumJS globe. Everything below describing Leaflet is the original design
+> record and is left as written; `weather/js/map.js` and `weather/README.md`
+> describe what the app does now. The module boundary did not move: Cesium is
+> confined to `map.js` exactly as Leaflet was, and no other file changed. The
+> keyless constraint still holds - Cesium's bundled default ion token is
+> cleared at startup and no ion asset is ever requested.
+
 ---
 
 ## 1. Concept

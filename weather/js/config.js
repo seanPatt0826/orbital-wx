@@ -53,6 +53,41 @@ export const GIBS_LAYERS = Object.freeze([
   }
 ]);
 
+// Sits under every daily layer. Blue Marble is a static global mosaic, so it
+// has no orbital gaps: where a day's swath is missing, the globe shows terrain
+// instead of a black sliver. No date in the path - it does not change.
+export const GIBS_BASE = Object.freeze({
+  layer: 'BlueMarble_ShadedRelief_Bathymetry',
+  matrixSet: 'GoogleMapsCompatible_Level8',
+  format: 'jpeg',
+  maxZoom: 8
+});
+
+// Globe appearance and camera. Colours mirror the CSS custom properties.
+export const GLOBE = Object.freeze({
+  oceanColor: '#0b1018',
+  accentColor: '#f0a202',
+  markerOutline: '#12100e',
+  labelColor: '#e8e6e1',
+  labelBackground: 'rgba(21, 23, 28, 0.85)',
+  // Whole disc in frame at startup. The region view stays high enough that the
+  // limb and the curve of the horizon are still in shot: drop much below this
+  // and the view flattens into an ordinary map, which is the thing a globe is
+  // here to avoid. Detail is traded for the planet reading as a planet.
+  startAltitudeMetres: 24000000,
+  regionAltitudeMetres: 7000000,
+  flyDurationSeconds: 1.6,
+  // Thematic layers are data, not photography, so the relief shows through.
+  thematicAlpha: 0.8,
+  // How close to black a pixel must be to count as "no data" and be keyed out
+  // so Blue Marble shows through. Tight enough that dark ocean survives.
+  noDataThreshold: 0.09,
+  // Ignore reflows smaller than this. Re-rendering a value nudges the layout
+  // by a pixel or two, which is not worth resizing the globe and refetching
+  // tiles for.
+  resizeThresholdPx: 8
+});
+
 // Thresholds for the insight rules. All values are metric, matching the
 // units the APIs return, so rules behave identically in either display unit.
 export const THRESHOLDS = Object.freeze({

@@ -1,5 +1,11 @@
 # NASA Space Apps Weather App Implementation Plan
 
+> **Superseded in part, 2026-08-20:** the flat Leaflet map was replaced by a
+> CesiumJS globe. Everything below describing Leaflet is the original build
+> record and is left as written; `weather/js/map.js` and `weather/README.md`
+> describe what the app does now. The module boundary did not move: Cesium is
+> confined to `map.js` exactly as Leaflet was, and no other file changed.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a keyless, static weather application in `weather/` that fuses Open-Meteo forecasts with NASA POWER climate normals, NASA GIBS satellite tile layers, and NASA EPIC whole-Earth imagery.

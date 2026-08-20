@@ -109,7 +109,11 @@ body {
   color: var(--muted);
 }
 
-.map { height: 380px; background: var(--panel-raised); }
+/* Cesium sizes its widget to 100% of this box. A percentage height against an
+   auto-height flex parent is circular, and the globe grows without bound, so
+   the widget is taken out of flow and pinned to the box instead. */
+.map { height: 380px; background: var(--panel-raised); position: relative; overflow: hidden; }
+.map .cesium-viewer { position: absolute; inset: 0; }
 
 @media (min-width: 900px) {
   .layout {
@@ -184,15 +188,26 @@ body {
 .search__result:hover, .search__result.is-active { background: var(--accent); color: var(--bg); }
 .unit-toggle { display: flex; }
 
-/* Leaflet's default panel is white; force it into the console palette. */
-.leaflet-container { background: var(--panel-raised); }
-.leaflet-control-attribution {
-  background: rgba(13, 14, 17, 0.85) !important;
-  color: var(--muted) !important;
+/* Cesium ships a light chrome of its own; force it into the console palette.
+   The credit display stays visible - NASA and Cesium both require attribution
+   and the spec's no-fabrication stance extends to saying where imagery came
+   from - but it is restyled to read as part of the instrument panel. */
+.cesium-viewer,
+.cesium-widget,
+.cesium-widget canvas { background: var(--bg); }
+.cesium-viewer-bottom {
+  background: rgba(13, 14, 17, 0.85);
+  padding: 2px 6px;
   font-family: var(--mono);
   font-size: 10px;
 }
-.leaflet-control-attribution a { color: var(--cool) !important; }
+.cesium-credit-text,
+.cesium-credit-expand-link,
+.cesium-widget-credits { color: var(--muted) !important; font-size: 10px !important; }
+.cesium-credit-expand-link { text-decoration: underline; }
+/* The globe is the only interactive surface; Cesium's focus ring on the
+   canvas would otherwise sit under the panel's own registration ticks. */
+.cesium-widget canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 /* ===== Readouts ========================================================== */
 .readouts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-4); }

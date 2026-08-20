@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orbital WX - weather with Earth context</title>
   <meta name="description" content="Live weather fused with NASA Earth observation data. No API keys.">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.144.0/Build/Cesium/Widgets/widgets.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -111,7 +111,12 @@
        Imagery from NASA GIBS and NASA EPIC aboard NOAA DSCOVR. No API keys are used by this application.</p>
   </footer>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- CesiumJS as a UMD bundle, so the app still needs no build step. Its
+       workers and assets load from the same CDN path, which CESIUM_BASE_URL
+       must point at. No ion access token is set anywhere: nothing here
+       requests an ion asset, so none is needed. -->
+  <script>window.CESIUM_BASE_URL = 'https://cdn.jsdelivr.net/npm/cesium@1.144.0/Build/Cesium/';</script>
+  <script src="https://cdn.jsdelivr.net/npm/cesium@1.144.0/Build/Cesium/Cesium.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

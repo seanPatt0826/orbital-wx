@@ -1,10 +1,14 @@
-// Owns the Leaflet instance. Nothing else in the app touches Leaflet.
+// Owns the CesiumJS globe. Nothing else in the app touches Cesium.
+//
+// Cesium arrives as a UMD bundle from a CDN, so there is still no build step
+// and still no API key: no ion asset is ever requested, and every tile comes
+// from NASA GIBS, which is open. See index.html for the two script tags.
 
-import { API, GIBS_LAYERS } from './config.js';
+import { API, GIBS_LAYERS, GIBS_BASE, GLOBE } from './config.js';
 
-let map = null;
+let viewer = null;
+let overlay = null;
 let marker = null;
-let tileLayer = null;
 let activeLayerId = GIBS_LAYERS[0].id;
 
 /**
@@ -20,68 +24,177 @@ function layerById(id) {
   return GIBS_LAYERS.find((l) => l.id === id) || GIBS_LAYERS[0];
 }
 
-export function initMap(elementId) {
-  const element = document.getElementById(elementId);
-  map = L.map(element, {
-    center: [20, 0],
-    zoom: 2,
-    worldCopyJump: true,
-    attributionControl: true
+/**
+ * Builds the options for one GIBS layer.
+ *
+ * The layer id and tile matrix set are interpolated into the URL rather than
+ * left as Cesium template tokens: the provider lowercases those particular
+ * tokens ({layer}, {tilematrixset}) and depending on that casing is a trap.
+ * Only {TileMatrix}/{TileRow}/{TileCol} are substituted per tile.
+ */
+function gibsProvider({ layer, matrixSet, format, maxZoom, date }) {
+  const stamp = date ? `${date}/` : '';
+  return new Cesium.WebMapTileServiceImageryProvider({
+    url: `${API.gibs}/${layer}/default/${stamp}${matrixSet}/{TileMatrix}/{TileRow}/{TileCol}.${format}`,
+    layer,
+    style: 'default',
+    format: format === 'png' ? 'image/png' : 'image/jpeg',
+    tileMatrixSetID: matrixSet,
+    maximumLevel: maxZoom,
+    // The epsg3857 endpoint is web mercator. Cesium's WMTS provider assumes a
+    // geographic tiling scheme and would misregister every tile without this.
+    tilingScheme: new Cesium.WebMercatorTilingScheme(),
+    credit: 'Imagery: NASA EOSDIS GIBS'
   });
-  setLayer(activeLayerId);
-
-  // Leaflet measures its container once and caches the result. On desktop the
-  // map panel stretches to match the readout column, which only reaches its
-  // full height after the forecast, anomaly and tips have loaded - long after
-  // init. Without this the map keeps its startup size and leaves a band of
-  // empty panel with no tiles in it.
-  if (typeof ResizeObserver === 'function') {
-    new ResizeObserver(() => map.invalidateSize({ animate: false })).observe(element);
-  }
-
-  return map;
 }
 
-/** Swaps the GIBS tile layer, keeping the current view. */
+export function initMap(elementId) {
+  const element = document.getElementById(elementId);
+
+  // Cesium ships with a default ion access token baked into the bundle. This
+  // app promises no API keys anywhere, and an unused-but-present credential is
+  // still a credential, so it is cleared before the viewer exists. Nothing
+  // here requests an ion asset; clearing it makes that structural rather than
+  // a matter of trust, and any accidental ion call now fails loudly.
+  Cesium.Ion.defaultAccessToken = undefined;
+
+  // The default credit is the Cesium ion logo, which advertises a hosted
+  // service this app deliberately does not use. CesiumJS is Apache 2.0 and
+  // asks for attribution, not for that logo, so it is credited in words.
+  // NASA's imagery credit rides along with each tile provider. Must be set
+  // before the viewer is constructed: the display reads it at creation.
+  Cesium.CreditDisplay.cesiumCredit = new Cesium.Credit('Globe rendered with CesiumJS', false);
+
+  viewer = new Cesium.Viewer(element, {
+    // Blue Marble underneath everything: it is a static global mosaic with no
+    // orbital gaps, so where a daily swath is missing the globe shows terrain
+    // rather than a black sliver.
+    baseLayer: new Cesium.ImageryLayer(gibsProvider(GIBS_BASE)),
+    baseLayerPicker: false,
+    animation: false,
+    timeline: false,
+    geocoder: false,
+    homeButton: false,
+    sceneModePicker: false,
+    navigationHelpButton: false,
+    fullscreenButton: false,
+    selectionIndicator: false,
+    infoBox: false,
+    // Redraw on change rather than running a 60fps loop while the page idles.
+    requestRenderMode: true
+  });
+
+  const { scene } = viewer;
+  scene.globe.baseColor = Cesium.Color.fromCssColorString(GLOBE.oceanColor);
+  // Even illumination. A real day/night terminator would hide half the data,
+  // and this is an instrument panel rather than an orrery.
+  scene.globe.enableLighting = false;
+  // Shades the limb so the globe reads as a sphere. At full brightness it fogs
+  // out the imagery, so it is darkened and desaturated.
+  scene.globe.showGroundAtmosphere = true;
+  scene.globe.atmosphereBrightnessShift = -0.4;
+  scene.globe.atmosphereSaturationShift = -0.3;
+  scene.skyAtmosphere.brightnessShift = -0.1;
+
+  setLayer(activeLayerId);
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(0, 15, GLOBE.startAltitudeMetres)
+  });
+
+  // On desktop the map panel stretches to match the readout column, which only
+  // reaches full height once the forecast, anomaly and tips have loaded - long
+  // after this runs. requestRenderMode means Cesium is not polling for that, so
+  // it has to be told, or the globe keeps its startup size in a taller box.
+  //
+  // Thresholded, because the readout column reflows by a pixel or two whenever
+  // a value is re-rendered - switching to Fahrenheit widens every number. Each
+  // of those would otherwise resize the globe and pull fresh tiles for a
+  // change nobody can see.
+  if (typeof ResizeObserver === 'function') {
+    let appliedWidth = 0;
+    let appliedHeight = 0;
+    new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (Math.abs(width - appliedWidth) < GLOBE.resizeThresholdPx
+        && Math.abs(height - appliedHeight) < GLOBE.resizeThresholdPx) return;
+      appliedWidth = width;
+      appliedHeight = height;
+      viewer.resize();
+      viewer.scene.requestRender();
+    }).observe(element);
+  }
+
+  return viewer;
+}
+
+/** Swaps the daily GIBS overlay, keeping the current camera position. */
 export function setLayer(layerId) {
   const config = layerById(layerId);
   activeLayerId = config.id;
+  if (!viewer || viewer.isDestroyed()) return config;
 
-  if (tileLayer) map.removeLayer(tileLayer);
+  if (overlay) {
+    viewer.imageryLayers.remove(overlay, true);
+    overlay = null;
+  }
 
-  // NASA GIBS follows the WMTS REST convention, which orders the path as
-  // {TileMatrix}/{TileRow}/{TileCol}, i.e. {z}/{y}/{x}. Leaflet's own
-  // default is {z}/{x}/{y}, so the axis order here is deliberate.
-  const template =
-    `${API.gibs}/${config.layer}/default/${gibsDateString()}/${config.matrixSet}/{z}/{y}/{x}.${config.format}`;
-
-  tileLayer = L.tileLayer(template, {
-    maxZoom: config.maxZoom,
-    minZoom: 1,
-    tileSize: 256,
-    attribution: 'Imagery: NASA EOSDIS GIBS'
+  const provider = gibsProvider({ ...config, date: gibsDateString() });
+  // GIBS 404s on layer and date combinations it does not hold. Cesium retries
+  // on its own, so this is logged once rather than surfaced as a panel error.
+  provider.errorEvent.addEventListener((error) => {
+    console.warn(`GIBS tile request failed for ${config.layer}`, error);
   });
-  tileLayer.addTo(map);
 
-  // Zooming past the layer's maximum leaves the map blank, so clamp it.
-  if (map.getZoom() > config.maxZoom) map.setZoom(config.maxZoom);
-  map.setMaxZoom(config.maxZoom);
+  overlay = viewer.imageryLayers.addImageryProvider(provider);
+  // Thematic layers read better with the Blue Marble relief showing through;
+  // true colour is the photograph itself and is left opaque.
+  overlay.alpha = config.format === 'png' ? GLOBE.thematicAlpha : 1;
+
+  // MODIS and VIIRS image in strips, and consecutive orbits do not quite meet
+  // near the equator. Those gaps arrive as black pixels inside a JPEG, which
+  // has no alpha channel, so they cannot reveal the layer underneath on their
+  // own and read as tears in the planet. Keying near-black out turns them back
+  // into windows onto Blue Marble. The threshold is deliberately tight: deep
+  // ocean in true colour is dark navy, not black, and must survive.
+  overlay.colorToAlpha = Cesium.Color.BLACK;
+  overlay.colorToAlphaThreshold = GLOBE.noDataThreshold;
 
   return config;
 }
 
 export function flyTo(latitude, longitude, label) {
   const config = layerById(activeLayerId);
-  const zoom = Math.min(6, config.maxZoom);
-  map.flyTo([latitude, longitude], zoom, { duration: 1.2 });
 
-  if (marker) map.removeLayer(marker);
-  marker = L.marker([latitude, longitude]).addTo(map);
-  marker.bindPopup(label);
+  if (marker) viewer.entities.remove(marker);
+  marker = viewer.entities.add({
+    position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
+    point: {
+      pixelSize: 10,
+      color: Cesium.Color.fromCssColorString(GLOBE.accentColor),
+      outlineColor: Cesium.Color.fromCssColorString(GLOBE.markerOutline),
+      outlineWidth: 2,
+      // Keeps the marker visible when it sits over the horizon-facing surface.
+      disableDepthTestDistance: Number.POSITIVE_INFINITY
+    },
+    label: {
+      text: label,
+      font: '13px ui-monospace, Consolas, monospace',
+      fillColor: Cesium.Color.fromCssColorString(GLOBE.labelColor),
+      showBackground: true,
+      backgroundColor: Cesium.Color.fromCssColorString(GLOBE.labelBackground),
+      pixelOffset: new Cesium.Cartesian2(0, -22),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY
+    }
+  });
 
-  // The map is decorative to a screen reader unless it says where it is.
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, GLOBE.regionAltitudeMetres),
+    duration: GLOBE.flyDurationSeconds
+  });
+
+  // The globe is decorative to a screen reader unless it says where it is.
   document.getElementById('map')
-    .setAttribute('aria-label', `Satellite map centred on ${label}, showing the ${config.label} layer`);
+    .setAttribute('aria-label', `Satellite globe centred on ${label}, showing the ${config.label} layer`);
 }
 
 /** Builds the layer switch buttons and reports the active layer's metadata. */
