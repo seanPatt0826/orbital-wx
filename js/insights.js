@@ -1,7 +1,7 @@
 // Pure logic. No network, no DOM, no side effects.
 // Everything here is unit tested, which is only possible because it is pure.
 
-import { WMO_CODES, MONTH_KEYS, THRESHOLDS } from './config.js';
+import { WMO_CODES, MONTH_KEYS, THRESHOLDS, POWER_FILL_VALUE } from './config.js';
 
 // Rendered whenever a value is genuinely unavailable. Never render a zero
 // or a guess in its place.
@@ -22,11 +22,35 @@ export function kmhToMph(kmh) {
   return kmh * 0.621371;
 }
 
+/**
+ * Converts a temperature DIFFERENCE, which scales by 9/5 with no offset.
+ * Passing a difference through celsiusToFahrenheit would add 32 degrees to
+ * it and be wrong every single time, so the two conversions are separate
+ * functions rather than one function with a flag.
+ */
+export function celsiusDeltaToFahrenheit(deltaC) {
+  if (!isNumber(deltaC)) return null;
+  return deltaC * 9 / 5;
+}
+
+/**
+ * Reads the first entry of a forecast series. Open-Meteo omits a field
+ * outright when it has nothing to report, so indexing it directly throws
+ * instead of yielding a missing value.
+ */
+export function firstValue(series) {
+  if (!Array.isArray(series) || series.length === 0) return null;
+  const value = series[0];
+  return isNumber(value) ? value : null;
+}
+
 /** Maps a WMO weather interpretation code to a label and an SVG icon id. */
 export function describeWeatherCode(code) {
   const entry = WMO_CODES[code];
   if (!entry) return { label: 'Unknown', icon: 'unknown' };
-  return entry;
+  // Copy: Object.freeze on WMO_CODES does not freeze the nested entries, so
+  // returning one directly lets any caller corrupt the table for everyone.
+  return { ...entry };
 }
 
 /**
@@ -42,15 +66,36 @@ export function formatTemperature(celsius, units) {
 }
 
 /** Formats any other measurement with an explicit unit label. */
-export function formatMeasurement(value, unit, digits = 1) {
+export function formatMeasurement(value, unit = '', digits = 1) {
   if (!isNumber(value)) return EM_DASH;
   // trim() covers the unitless case, such as the UV index.
   return `${value.toFixed(digits)} ${unit}`.trim();
 }
 
-/** Converts a Date into the JAN..DEC key NASA POWER uses for climatology. */
+/**
+ * Converts a Date into the JAN..DEC key NASA POWER uses for climatology.
+ * Reads the browser's local month, so it is only correct for a location in
+ * the browser's own timezone. For a searched location use
+ * monthKeyFromIsoDate with the date Open-Meteo reports for that place.
+ */
 export function monthKeyFromDate(date) {
   return MONTH_KEYS[date.getMonth()];
+}
+
+/**
+ * Converts Open-Meteo's local date string ("YYYY-MM-DD") into a POWER month
+ * key. The string is parsed by hand rather than through Date: Date treats a
+ * bare date as UTC midnight and then reports it in the machine's timezone,
+ * which slides the day either side of a month boundary. The date already
+ * belongs to the searched location, so no conversion is wanted at all.
+ */
+export function monthKeyFromIsoDate(isoDate) {
+  if (typeof isoDate !== 'string') return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate);
+  if (!match) return null;
+  const monthIndex = Number(match[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return null;
+  return MONTH_KEYS[monthIndex];
 }
 
 /**
@@ -60,7 +105,7 @@ export function monthKeyFromDate(date) {
  * Returns null rather than a guess whenever the comparison cannot be made
  * honestly, including when POWER reports its fill value (-999) for the month.
  */
-export function computeAnomaly(todayMeanC, normals, monthKey, fillValue) {
+export function computeAnomaly(todayMeanC, normals, monthKey, fillValue = POWER_FILL_VALUE) {
   if (!isNumber(todayMeanC)) return null;
   if (!normals || typeof normals !== 'object') return null;
 
@@ -128,7 +173,7 @@ export function buildTips(conditions) {
     const category = aqiCategory(usAqi);
     tips.push({
       id: 'aqi',
-      severity: usAqi >= 151 ? 'warning' : 'caution',
+      severity: usAqi >= THRESHOLDS.usAqiUnhealthy ? 'warning' : 'caution',
       title: `Air quality: ${category.label.toLowerCase()}`,
       body: `US AQI is ${usAqi}. Sensitive groups should limit prolonged outdoor exertion.`
     });
@@ -188,3 +233,4 @@ export function buildTips(conditions) {
 
   return tips;
 }
+

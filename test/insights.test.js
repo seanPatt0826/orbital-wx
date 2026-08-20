@@ -7,6 +7,9 @@ import {
   formatTemperature,
   formatMeasurement,
   monthKeyFromDate,
+  monthKeyFromIsoDate,
+  celsiusDeltaToFahrenheit,
+  firstValue,
   computeAnomaly,
   aqiCategory,
   buildTips
@@ -66,9 +69,12 @@ test('formatMeasurement omits the separator when there is no unit', () => {
 });
 
 test('monthKeyFromDate returns the POWER month abbreviation', () => {
-  assert.equal(monthKeyFromDate(new Date('2026-08-06T12:00:00Z')), 'AUG');
-  assert.equal(monthKeyFromDate(new Date('2026-01-31T12:00:00Z')), 'JAN');
-  assert.equal(monthKeyFromDate(new Date('2026-12-01T12:00:00Z')), 'DEC');
+  // Constructed as local dates, not as "...Z" instants. monthKeyFromDate reads
+  // the local month, so a UTC instant near a month boundary would make this
+  // test pass or fail according to the machine's timezone rather than the code.
+  assert.equal(monthKeyFromDate(new Date(2026, 7, 6)), 'AUG');
+  assert.equal(monthKeyFromDate(new Date(2026, 0, 31)), 'JAN');
+  assert.equal(monthKeyFromDate(new Date(2026, 11, 1)), 'DEC');
 });
 
 test('computeAnomaly subtracts the monthly normal from today mean', () => {
@@ -142,4 +148,74 @@ test('every tip carries an id, severity, title and body', () => {
     assert.ok(tip.title.length > 0);
     assert.ok(tip.body.length > 0);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Exactness tests added after auditing the pure functions against the spec.
+// ---------------------------------------------------------------------------
+
+test('computeAnomaly rejects the POWER fill value when no fill value is passed', () => {
+  // POWER states the fill in header.fill_value, but a malformed or truncated
+  // response can omit the header. The default must still be -999, otherwise
+  // the function returns a fabricated 1022.9 degree anomaly.
+  assert.equal(computeAnomaly(23.9, { AUG: -999 }, 'AUG'), null);
+});
+
+test('monthKeyFromIsoDate reads the month from a location-local date string', () => {
+  assert.equal(monthKeyFromIsoDate('2026-01-01'), 'JAN');
+  assert.equal(monthKeyFromIsoDate('2026-08-31'), 'AUG');
+  assert.equal(monthKeyFromIsoDate('2026-09-01'), 'SEP');
+  assert.equal(monthKeyFromIsoDate('2026-12-31'), 'DEC');
+});
+
+test('monthKeyFromIsoDate never shifts with the machine timezone', () => {
+  // The whole point: "2026-08-31" is August at the location regardless of
+  // where the browser sits. Parsing it through Date would shift the day.
+  assert.equal(monthKeyFromIsoDate('2026-08-31'), 'AUG');
+  assert.equal(monthKeyFromIsoDate('2026-08-31T00:00'), 'AUG');
+});
+
+test('monthKeyFromIsoDate returns null for malformed input', () => {
+  assert.equal(monthKeyFromIsoDate(null), null);
+  assert.equal(monthKeyFromIsoDate(''), null);
+  assert.equal(monthKeyFromIsoDate('not-a-date'), null);
+  assert.equal(monthKeyFromIsoDate('2026-13-01'), null);
+  assert.equal(monthKeyFromIsoDate('2026-00-01'), null);
+});
+
+test('celsiusDeltaToFahrenheit scales a difference without the 32 degree offset', () => {
+  // A 4.2 C anomaly is a 7.6 F anomaly, not a 39.6 F one.
+  assert.equal(celsiusDeltaToFahrenheit(0), 0);
+  assert.ok(Math.abs(celsiusDeltaToFahrenheit(4.2) - 7.56) < 1e-9);
+  assert.equal(celsiusDeltaToFahrenheit(-5), -9);
+  assert.equal(celsiusDeltaToFahrenheit(null), null);
+});
+
+test('formatMeasurement omits the unit when none is given', () => {
+  assert.equal(formatMeasurement(5), '5.0');
+});
+
+test('describeWeatherCode does not hand out the shared config entry', () => {
+  const first = describeWeatherCode(0);
+  first.label = 'MUTATED';
+  assert.deepEqual(describeWeatherCode(0), { label: 'Clear sky', icon: 'clear' });
+});
+
+test('firstValue reads a forecast series without throwing on absent fields', () => {
+  // Open-Meteo omits a field entirely when it has nothing to report, so
+  // daily.uv_index_max[0] throws rather than yielding null.
+  assert.equal(firstValue([3, 4]), 3);
+  assert.equal(firstValue([0]), 0);
+  assert.equal(firstValue([]), null);
+  assert.equal(firstValue(undefined), null);
+  assert.equal(firstValue(null), null);
+  assert.equal(firstValue([null, 5]), null);
+  assert.equal(firstValue('not an array'), null);
+});
+
+test('the air quality tip escalates from caution to warning at the unhealthy boundary', () => {
+  const severity = (usAqi) => buildTips({ usAqi }).find((t) => t.id === 'aqi').severity;
+  assert.equal(severity(101), 'caution');
+  assert.equal(severity(150), 'caution');
+  assert.equal(severity(151), 'warning');
 });

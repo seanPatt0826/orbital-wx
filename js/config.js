@@ -59,6 +59,9 @@ export const THRESHOLDS = Object.freeze({
   uvIndex: 6,
   windSpeedKmh: 40,
   usAqi: 101,
+  // The EPA "Unhealthy" boundary, where the air quality tip stops being a
+  // caution for sensitive groups and becomes a warning for everyone.
+  usAqiUnhealthy: 151,
   precipProbability: 60,
   anomalyWarmC: 3,
   anomalyCoolC: -3,

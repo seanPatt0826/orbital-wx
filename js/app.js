@@ -7,7 +7,9 @@ import {
   searchLocations, fetchForecast, fetchClimateNormals, fetchAirQuality,
   fetchLatestEpic, buildEpicImageUrl
 } from './api.js';
-import { computeAnomaly, monthKeyFromDate, buildTips } from './insights.js';
+import {
+  computeAnomaly, monthKeyFromDate, monthKeyFromIsoDate, firstValue, buildTips
+} from './insights.js';
 import * as ui from './ui.js';
 import * as mapView from './map.js';
 
@@ -52,26 +54,58 @@ async function loadForecast() {
  * Called after each panel loads, so advice appears progressively.
  */
 function refreshTips() {
-  const daily = state.forecast && state.forecast.daily;
-  const current = state.forecast && state.forecast.current;
-  const air = state.airQuality && state.airQuality.current;
+  const daily = (state.forecast && state.forecast.daily) || {};
+  const current = (state.forecast && state.forecast.current) || {};
+  const air = (state.airQuality && state.airQuality.current) || {};
 
+  // firstValue rather than [0]: Open-Meteo drops a field entirely when it has
+  // nothing to report, and indexing an absent field throws.
   ui.renderTips(buildTips({
-    uvIndexMax: daily ? daily.uv_index_max[0] : null,
-    precipProbabilityMax: daily ? daily.precipitation_probability_max[0] : null,
-    windSpeedKmh: current ? current.wind_speed_10m : null,
-    apparentTemperatureC: current ? current.apparent_temperature : null,
-    usAqi: air ? air.us_aqi : null,
+    uvIndexMax: firstValue(daily.uv_index_max),
+    precipProbabilityMax: firstValue(daily.precipitation_probability_max),
+    windSpeedKmh: current.wind_speed_10m,
+    apparentTemperatureC: current.apparent_temperature,
+    usAqi: air.us_aqi,
     anomalyC: state.anomaly
   }));
 }
 
+/** The local date at the searched location, exactly as Open-Meteo reports it. */
+function forecastLocalDate() {
+  const time = state.forecast && state.forecast.daily && state.forecast.daily.time;
+  return Array.isArray(time) && typeof time[0] === 'string' ? time[0] : null;
+}
+
+/**
+ * The month whose normal the anomaly compares against. It must come from the
+ * location's own date, not the browser's: searching Los Angeles from Tokyo on
+ * the first of a month would otherwise subtract the wrong month's normal from
+ * a mean that still belongs to the previous one.
+ *
+ * The browser month is the fallback only when no forecast has arrived, in
+ * which case the anomaly itself is null and the key is a label alone.
+ */
+function anomalyMonthKey() {
+  return monthKeyFromIsoDate(forecastLocalDate()) || monthKeyFromDate(new Date());
+}
+
+/**
+ * Pulls the T2M monthly normals out of a POWER response, or an empty object
+ * if the response is not shaped as documented. Every reader below treats a
+ * missing month the same way it treats a fill value.
+ */
+function normalsTable(data) {
+  const parameter = data && data.properties && data.properties.parameter;
+  return (parameter && parameter.T2M) || {};
+}
+
 /** Reads the baseline metadata POWER reports, rather than hardcoding it. */
 function normalsMeta(data, monthKey, fillValue) {
-  const normals = data.properties.parameter.T2M;
+  const normal = normalsTable(data)[monthKey];
+  const usable = typeof normal === 'number' && Number.isFinite(normal) && normal !== fillValue;
   return {
     monthKey,
-    normalC: normals[monthKey] === fillValue ? null : normals[monthKey],
+    normalC: usable ? normal : null,
     baseline: (data.header && data.header.range) || 'unstated',
     sources: ((data.header && data.header.sources) || []).join(', ') || 'NASA POWER'
   };
@@ -84,9 +118,10 @@ async function loadClimateNormals() {
     state.normals = data;
 
     const fillValue = (data.header && data.header.fill_value) ?? POWER_FILL_VALUE;
-    const normals = data.properties.parameter.T2M;
-    const monthKey = monthKeyFromDate(new Date());
-    const todayMean = state.forecast ? state.forecast.daily.temperature_2m_mean[0] : null;
+    const normals = normalsTable(data);
+    const monthKey = anomalyMonthKey();
+    const daily = (state.forecast && state.forecast.daily) || {};
+    const todayMean = firstValue(daily.temperature_2m_mean);
 
     state.anomaly = computeAnomaly(todayMean, normals, monthKey, fillValue);
 
@@ -186,8 +221,7 @@ function setUnits(units) {
 
   if (state.anomaly !== null && state.normals) {
     const fillValue = (state.normals.header && state.normals.header.fill_value) ?? POWER_FILL_VALUE;
-    const monthKey = monthKeyFromDate(new Date());
-    ui.renderAnomaly(state.anomaly, normalsMeta(state.normals, monthKey, fillValue), units);
+    ui.renderAnomaly(state.anomaly, normalsMeta(state.normals, anomalyMonthKey(), fillValue), units);
   }
 }
 
