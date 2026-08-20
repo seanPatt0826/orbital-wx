@@ -312,7 +312,9 @@ panel background rather than assumed.
 
 ## 12. Testing
 
-`insights.js` is pure, so `node --test weather/test/` runs with no install. Coverage:
+`insights.js` is pure, so `cd weather && node --test` runs with no install. Passing the
+directory explicitly (`node --test test/`) fails on Node 24: it loads the directory as a
+single module. Coverage:
 
 - `computeAnomaly` with normal input, with `-999` fill values, with missing inputs
 - `describeWeatherCode` across the WMO code table including unknown codes

@@ -56,7 +56,7 @@
 - Consumes: nothing.
 - Produces: `config.js` exports `API`, `GIBS_LAYERS`, `THRESHOLDS`, `WMO_CODES`, `MONTH_KEYS`, `POWER_FILL_VALUE`, `REQUEST_TIMEOUT_MS`, `STORAGE_KEY`. All later tasks import from here.
 
-- [ ] **Step 1: Create `weather/package.json`**
+- [x] **Step 1: Create `weather/package.json`**
 
 This exists only so Node treats `.js` files as ES modules when running tests. It has no dependencies and requires no install.
 
@@ -74,7 +74,7 @@ This exists only so Node treats `.js` files as ES modules when running tests. It
 }
 ```
 
-- [ ] **Step 2: Create `weather/js/config.js`**
+- [x] **Step 2: Create `weather/js/config.js`**
 
 ```js
 // Central configuration. No logic lives here, only frozen constants.
@@ -193,7 +193,7 @@ export const REQUEST_TIMEOUT_MS = 8000;
 export const STORAGE_KEY = 'nasa-weather:last-location';
 ```
 
-- [ ] **Step 3: Create `weather/index.html`**
+- [x] **Step 3: Create `weather/index.html`**
 
 Structure only. Panels are empty containers that `ui.js` fills. The SVG sprite defines every weather icon once.
 
@@ -317,7 +317,7 @@ Structure only. Panels are empty containers that `ui.js` fills. The SVG sprite d
 </html>
 ```
 
-- [ ] **Step 4: Create `weather/style.css` with the design tokens and base layout**
+- [x] **Step 4: Create `weather/style.css` with the design tokens and base layout**
 
 The full visual pass happens in Task 12. This establishes the tokens and a working layout so every later task is visible.
 
@@ -451,7 +451,7 @@ body {
 }
 ```
 
-- [ ] **Step 5: Create a temporary `weather/js/app.js` so the page loads without a console error**
+- [x] **Step 5: Create a temporary `weather/js/app.js` so the page loads without a console error**
 
 ```js
 // Entry point. Fully implemented in Task 6 onward.
@@ -460,7 +460,7 @@ import { API } from './config.js';
 console.info('Orbital WX booted. Forecast endpoint:', API.forecast);
 ```
 
-- [ ] **Step 6: Create `weather/README.md`**
+- [x] **Step 6: Create `weather/README.md`**
 
 ```markdown
 # Orbital WX
@@ -508,12 +508,12 @@ Weather and air quality data by Open-Meteo. Climate normals from the NASA POWER 
 Imagery courtesy of NASA EOSDIS GIBS and the NASA EPIC team aboard NOAA DSCOVR.
 ```
 
-- [ ] **Step 7: Verify the app serves**
+- [x] **Step 7: Verify the app serves**
 
 Run: `npx serve weather` from the repository root, open the printed URL.
 Expected: the masthead renders in graphite and amber, all panel headings are visible, and the browser console shows `Orbital WX booted.` with no errors.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add weather/
@@ -532,7 +532,7 @@ git commit -m "feat: scaffold keyless NASA weather app with design tokens and co
 - Consumes: `WMO_CODES` from `config.js`.
 - Produces: `celsiusToFahrenheit(c)`, `kmhToMph(k)`, `describeWeatherCode(code)` returning `{ label, icon }`, `formatTemperature(valueC, units)` returning a string, `formatMeasurement(value, unit, digits)` returning a string. `units` is the string `'metric'` or `'imperial'` throughout the codebase.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `weather/test/insights.test.js`:
 
@@ -598,12 +598,12 @@ test('formatMeasurement omits the separator when there is no unit', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd weather && node --test`
 Expected: FAIL, cannot find module `../js/insights.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `weather/js/insights.js`:
 
@@ -659,12 +659,12 @@ export function formatMeasurement(value, unit, digits = 1) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd weather && node --test`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/insights.js weather/test/insights.test.js
@@ -683,7 +683,7 @@ git commit -m "feat: add formatting and weather code helpers with tests"
 - Consumes: `MONTH_KEYS`, `POWER_FILL_VALUE` from `config.js`.
 - Produces: `monthKeyFromDate(date)` returning e.g. `'AUG'`, and `computeAnomaly(todayMeanC, normals, monthKey, fillValue)` returning a number or `null`. `normals` is the object POWER returns at `properties.parameter.T2M`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `weather/test/insights.test.js`, and add `monthKeyFromDate` and `computeAnomaly` to the existing import at the top of the file:
 
@@ -712,12 +712,12 @@ test('computeAnomaly returns null when inputs are missing', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd weather && node --test`
 Expected: FAIL, `monthKeyFromDate is not defined`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Add to `weather/js/insights.js`, and extend the config import to `import { WMO_CODES, MONTH_KEYS } from './config.js';`:
 
@@ -746,12 +746,12 @@ export function computeAnomaly(todayMeanC, normals, monthKey, fillValue) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd weather && node --test`
 Expected: PASS, 14 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/insights.js weather/test/insights.test.js
@@ -770,7 +770,7 @@ git commit -m "feat: compute climate anomaly against NASA POWER monthly normals"
 - Consumes: `THRESHOLDS` from `config.js`.
 - Produces: `aqiCategory(usAqi)` returning `{ label, level }` or `null`; `buildTips(conditions)` returning an array of `{ id, severity, title, body }`. `conditions` is `{ uvIndexMax, windSpeedKmh, usAqi, precipProbabilityMax, anomalyC, apparentTemperatureC }`, all metric, any of which may be `null`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `weather/test/insights.test.js`, adding `aqiCategory` and `buildTips` to the import:
 
@@ -832,12 +832,12 @@ test('every tip carries an id, severity, title and body', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd weather && node --test`
 Expected: FAIL, `aqiCategory is not defined`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Add to `weather/js/insights.js`, extending the config import to `import { WMO_CODES, MONTH_KEYS, THRESHOLDS } from './config.js';`:
 
@@ -961,12 +961,12 @@ export function buildTips(conditions) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd weather && node --test`
 Expected: PASS, 21 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/insights.js weather/test/insights.test.js
@@ -987,7 +987,7 @@ git commit -m "feat: add AQI categories and threshold-driven insight rules"
 
 The URL builders are separated from the fetchers precisely so the query construction can be tested without touching the network.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `weather/test/api.test.js`:
 
@@ -1070,12 +1070,12 @@ test('ApiError records which source failed', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cd weather && node --test`
 Expected: FAIL, cannot find module `../js/api.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `weather/js/api.js`:
 
@@ -1222,12 +1222,12 @@ export async function fetchLatestEpic() {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cd weather && node --test`
 Expected: PASS, 28 tests total across both files.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/api.js weather/test/api.test.js
@@ -1246,7 +1246,7 @@ git commit -m "feat: add keyless API layer with timeouts and typed errors"
 - Consumes: everything from `api.js` and `insights.js`.
 - Produces: `ui.js` exports `showLoading(panelId)`, `showError(panelId, message, onRetry)`, `renderCurrent(data, place, units)`, `renderSuggestions(results, onPick)`, `hideSuggestions()`, `setDocumentLocation(label)`. Panel ids are the DOM ids from `index.html`: `current-body`, `anomaly-body`, `air-body`, `tips-body`, `hourly-body`, `daily-body`, `epic-body`.
 
-- [ ] **Step 1: Create `weather/js/ui.js`**
+- [x] **Step 1: Create `weather/js/ui.js`**
 
 ```js
 // The only file that touches the DOM. Every function takes plain data and
@@ -1396,7 +1396,7 @@ export function hideSuggestions() {
 }
 ```
 
-- [ ] **Step 2: Replace `weather/js/app.js` with the orchestrator**
+- [x] **Step 2: Replace `weather/js/app.js` with the orchestrator**
 
 ```js
 // Entry point. Holds the small amount of application state, wires DOM
@@ -1482,17 +1482,17 @@ function init() {
 init();
 ```
 
-- [ ] **Step 3: Verify the slice works in the browser**
+- [x] **Step 3: Verify the slice works in the browser**
 
 Run: `npx serve weather`, open the URL, type `Lisbon`, press Search, click the first suggestion.
 Expected: current conditions render with a real temperature, feels-like, humidity, wind and precipitation; the page title becomes `Lisbon, Lisbon, PT - Orbital WX`; reloading the page restores Lisbon automatically.
 
-- [ ] **Step 4: Confirm the tests still pass**
+- [x] **Step 4: Confirm the tests still pass**
 
 Run: `cd weather && node --test`
 Expected: PASS, 28 tests.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/ui.js weather/js/app.js
@@ -1512,7 +1512,7 @@ git commit -m "feat: wire location search and current conditions end to end"
 - Consumes: the forecast response already held in `state.forecast`.
 - Produces: `ui.js` gains `renderHourly(data, units)` and `renderDaily(data, units)`.
 
-- [ ] **Step 1: Add `renderHourly` and `renderDaily` to `weather/js/ui.js`**
+- [x] **Step 1: Add `renderHourly` and `renderDaily` to `weather/js/ui.js`**
 
 ```js
 /**
@@ -1623,7 +1623,7 @@ export function renderDaily(data, units) {
 }
 ```
 
-- [ ] **Step 2: Call them from `loadForecast` in `weather/js/app.js`**
+- [x] **Step 2: Call them from `loadForecast` in `weather/js/app.js`**
 
 Replace the body of `loadForecast` with:
 
@@ -1645,7 +1645,7 @@ async function loadForecast() {
 }
 ```
 
-- [ ] **Step 3: Add the styles to `weather/style.css`**
+- [x] **Step 3: Add the styles to `weather/style.css`**
 
 ```css
 /* ===== Readouts ========================================================== */
@@ -1680,12 +1680,12 @@ async function loadForecast() {
 .daily .num { text-align: right; font-variant-numeric: tabular-nums; }
 ```
 
-- [ ] **Step 4: Verify in the browser**
+- [x] **Step 4: Verify in the browser**
 
 Run: `npx serve weather`, search a location.
 Expected: the hourly strip starts at the current hour and scrolls horizontally through 24 cells with bars that vary in height; the seven day table shows seven rows with the first labelled "Today".
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/ui.js weather/js/app.js weather/style.css
@@ -1705,7 +1705,7 @@ git commit -m "feat: add hourly strip and seven day forecast table"
 - Consumes: `API`, `GIBS_LAYERS` from `config.js`; the Leaflet global `L` from the CDN script tag.
 - Produces: `initMap(elementId)`, `flyTo(latitude, longitude, label)`, `setLayer(layerId)`, `renderLayerSwitch(containerId, onSelect)`, `gibsDateString(date)`.
 
-- [ ] **Step 1: Create `weather/js/map.js`**
+- [x] **Step 1: Create `weather/js/map.js`**
 
 ```js
 // Owns the Leaflet instance. Nothing else in the app touches Leaflet.
@@ -1809,7 +1809,7 @@ export function renderLayerSwitch(containerId, onSelect) {
 }
 ```
 
-- [ ] **Step 2: Wire the map into `weather/js/app.js`**
+- [x] **Step 2: Wire the map into `weather/js/app.js`**
 
 Add the import:
 
@@ -1838,7 +1838,7 @@ In `selectPlace`, after `ui.setDocumentLocation(place.label)`, add:
   mapView.flyTo(place.latitude, place.longitude, place.label);
 ```
 
-- [ ] **Step 3: Add the styles to `weather/style.css`**
+- [x] **Step 3: Add the styles to `weather/style.css`**
 
 ```css
 /* ===== Layer switch ====================================================== */
@@ -1882,12 +1882,12 @@ In `selectPlace`, after `ui.setDocumentLocation(place.label)`, add:
 .leaflet-control-attribution a { color: var(--cool) !important; }
 ```
 
-- [ ] **Step 4: Verify in the browser**
+- [x] **Step 4: Verify in the browser**
 
 Run: `npx serve weather`, search a location, then click each of the four layer buttons.
 Expected: the map flies to the location with a marker; every layer button loads visible imagery; the note under the map names the layer and its date; no blank grey tiles at the default zoom.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/map.js weather/js/app.js weather/style.css
@@ -1907,7 +1907,7 @@ git commit -m "feat: add Leaflet map with switchable NASA GIBS layers"
 - Consumes: `fetchClimateNormals`, `fetchAirQuality` from `api.js`; `computeAnomaly`, `monthKeyFromDate`, `aqiCategory`, `buildTips` from `insights.js`.
 - Produces: `ui.js` gains `renderAnomaly(anomalyC, meta, units)`, `renderAirQuality(data)`, `renderTips(tips)`. `meta` is `{ baseline, sources, normalC, monthKey }`.
 
-- [ ] **Step 1: Add the three renderers to `weather/js/ui.js`**
+- [x] **Step 1: Add the three renderers to `weather/js/ui.js`**
 
 Extend the imports from `./insights.js` to include `aqiCategory`.
 
@@ -1987,7 +1987,7 @@ export function renderTips(tips) {
 }
 ```
 
-- [ ] **Step 2: Orchestrate the three panels in `weather/js/app.js`**
+- [x] **Step 2: Orchestrate the three panels in `weather/js/app.js`**
 
 Extend the imports:
 
@@ -2069,7 +2069,7 @@ In `selectPlace`, replace `await loadForecast();` with:
   loadAirQuality();
 ```
 
-- [ ] **Step 3: Add the styles to `weather/style.css`**
+- [x] **Step 3: Add the styles to `weather/style.css`**
 
 ```css
 /* ===== Anomaly =========================================================== */
@@ -2100,17 +2100,17 @@ In `selectPlace`, replace `await loadForecast();` with:
 .btn--small { padding: var(--space-1) var(--space-2); }
 ```
 
-- [ ] **Step 4: Verify in the browser**
+- [x] **Step 4: Verify in the browser**
 
 Run: `npx serve weather`, search `Lisbon`.
 Expected: the anomaly card shows a signed value with the claim sentence and cites `January 2001 - December 2020` and `MERRA2`; the air quality card shows a real AQI with its category; the insights list reflects the actual conditions. Search a mid-ocean point such as `Midway` to confirm the anomaly still resolves or degrades honestly.
 
-- [ ] **Step 5: Confirm the tests still pass**
+- [x] **Step 5: Confirm the tests still pass**
 
 Run: `cd weather && node --test`
 Expected: PASS, 28 tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add weather/js/ui.js weather/js/app.js weather/style.css
@@ -2130,7 +2130,7 @@ git commit -m "feat: add climate anomaly, air quality and insight panels"
 - Consumes: `fetchLatestEpic`, `buildEpicImageUrl` from `api.js`.
 - Produces: `ui.js` gains `renderEpic(entry, imageUrl)`.
 
-- [ ] **Step 1: Add `renderEpic` to `weather/js/ui.js`**
+- [x] **Step 1: Add `renderEpic` to `weather/js/ui.js`**
 
 ```js
 /**
@@ -2168,7 +2168,7 @@ export function renderEpic(entry, imageUrl) {
 }
 ```
 
-- [ ] **Step 2: Load it once at startup in `weather/js/app.js`**
+- [x] **Step 2: Load it once at startup in `weather/js/app.js`**
 
 Extend the `api.js` import with `fetchLatestEpic, buildEpicImageUrl`, then add:
 
@@ -2186,7 +2186,7 @@ async function loadEpic() {
 
 Call `loadEpic();` at the end of `init()`. It does not depend on a location, so it runs immediately on page load.
 
-- [ ] **Step 3: Add the styles to `weather/style.css`**
+- [x] **Step 3: Add the styles to `weather/style.css`**
 
 ```css
 /* ===== EPIC ============================================================== */
@@ -2201,12 +2201,12 @@ Call `loadEpic();` at the end of `init()`. It does not depend on a location, so 
 }
 ```
 
-- [ ] **Step 4: Verify in the browser**
+- [x] **Step 4: Verify in the browser**
 
 Run: `npx serve weather`, scroll to the EPIC panel.
 Expected: a real full-disc Earth photograph loads with its capture timestamp and NASA's own caption text.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/js/ui.js weather/js/app.js weather/style.css
@@ -2225,7 +2225,7 @@ git commit -m "feat: add NASA EPIC whole-Earth imagery section"
 - Consumes: everything already built.
 - Produces: no new exports. Adds `#geolocate-btn`, `#unit-metric`, `#unit-imperial` handlers and arrow-key navigation of the suggestion listbox.
 
-- [ ] **Step 1: Add geolocation and the unit toggle to `weather/js/app.js`**
+- [x] **Step 1: Add geolocation and the unit toggle to `weather/js/app.js`**
 
 ```js
 /**
@@ -2293,7 +2293,7 @@ Register them in `init()`:
   document.getElementById('unit-imperial').addEventListener('click', () => setUnits('imperial'));
 ```
 
-- [ ] **Step 2: Add keyboard navigation for the suggestions in `weather/js/ui.js`**
+- [x] **Step 2: Add keyboard navigation for the suggestions in `weather/js/ui.js`**
 
 Append to `ui.js`:
 
@@ -2353,12 +2353,12 @@ Add the highlight style to `style.css`:
 .unit-toggle { display: flex; }
 ```
 
-- [ ] **Step 3: Verify in the browser**
+- [x] **Step 3: Verify in the browser**
 
 Run: `npx serve weather`.
 Expected: pressing "Use my location" prompts for permission and loads a coordinate-labelled location; the C and F buttons re-render every temperature instantly with no network request (confirm in the Network tab); typing a city then using arrow keys and Enter selects a suggestion without touching the mouse.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add weather/js/app.js weather/js/ui.js weather/style.css
@@ -2377,7 +2377,7 @@ git commit -m "feat: add geolocation, unit toggle and keyboard search navigation
 - Consumes: everything.
 - Produces: the finished application.
 
-- [ ] **Step 1: Add offline detection to `weather/js/app.js`**
+- [x] **Step 1: Add offline detection to `weather/js/app.js`**
 
 ```js
 /** Surfaces connectivity loss rather than letting requests fail silently. */
@@ -2392,7 +2392,7 @@ function watchConnectivity() {
 
 Call `watchConnectivity();` in `init()`.
 
-- [ ] **Step 2: Add the mission-console finishing details to `weather/style.css`**
+- [x] **Step 2: Add the mission-console finishing details to `weather/style.css`**
 
 The corner registration ticks are the signature that separates this from a generic dark dashboard.
 
@@ -2434,38 +2434,38 @@ The corner registration ticks are the signature that separates this from a gener
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 ```
 
-- [ ] **Step 3: Run the full test suite**
+- [x] **Step 3: Run the full test suite**
 
 Run: `cd weather && node --test`
-Expected: PASS, 28 tests, zero failures.
+Expected: PASS, 37 tests, zero failures.
 
-- [ ] **Step 4: Work through the manual verification checklist**
+- [x] **Step 4: Work through the manual verification checklist**
 
 Run `npx serve weather` and confirm each item. Do not mark this step complete until every line passes.
 
-- [ ] Search `Lisbon`, pick a suggestion: every panel populates with real values
-- [ ] Search `Reykjavik`: the anomaly may be negative; confirm it renders cool-coloured with a minus sign
-- [ ] Search a nonsense string such as `zzzzzz`: a "no location matches" message appears, no blank page
-- [ ] All four GIBS layers load visible imagery
-- [ ] The C and F toggle changes every temperature, including the anomaly, with no network traffic
-- [ ] "Use my location" works, or reports a clear reason if permission is denied
-- [ ] Reload: the last location is restored from `localStorage`
-- [ ] Open DevTools and set Offline WITHOUT reloading: the banner appears immediately via the
+- [x] Search `Lisbon`, pick a suggestion: every panel populates with real values
+- [x] Search `Reykjavik`: the anomaly may be negative; confirm it renders cool-coloured with a minus sign
+- [x] Search a nonsense string such as `zzzzzz`: a "no location matches" message appears, no blank page
+- [x] All four GIBS layers load visible imagery
+- [x] The C and F toggle changes every temperature, including the anomaly, with no network traffic
+- [x] "Use my location" works, or reports a clear reason if permission is denied
+- [x] Reload: the last location is restored from `localStorage`
+- [x] Open DevTools and set Offline WITHOUT reloading: the banner appears immediately via the
       window offline event. Then search a new city to drive the panels into their error states,
       go back online, and confirm Retry recovers them. Do not reload while offline: DevTools
       blocks localhost too, so the page itself would fail to load and nothing would be tested
-- [ ] Resize to 360px wide: single column, no horizontal page scroll, the hourly strip scrolls within itself
-- [ ] Tab through the entire page: every control has a visible amber focus ring
-- [ ] Search using only the keyboard: type, arrow down, Enter
-- [ ] Enable "Reduce motion" in the OS: the map still moves but panel fades are suppressed
-- [ ] Confirm the anomaly never shows -999. Note: POWER's MERRA-2 grid was verified to
+- [x] Resize to 360px wide: single column, no horizontal page scroll, the hourly strip scrolls within itself
+- [x] Tab through the entire page: every control has a visible amber focus ring
+- [x] Search using only the keyboard: type, arrow down, Enter
+- [x] Enable "Reduce motion" in the OS: the map still moves but panel fades are suppressed
+- [x] Confirm the anomaly never shows -999. Note: POWER's MERRA-2 grid was verified to
       cover ocean, Sahara and Antarctica with real values, so the fill-value path is
       defensive rather than routine. `Midway` does not geocode, so it tests the
       "no location matches" path instead
-- [ ] Confirm no emojis anywhere in the UI
-- [ ] Confirm the browser console is free of errors
+- [x] Confirm no emojis anywhere in the UI
+- [x] Confirm the browser console is free of errors
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add weather/
@@ -2478,7 +2478,7 @@ git commit -m "feat: add offline handling and mission console visual pass"
 
 The application is complete when:
 
-1. `cd weather && node --test` reports 28 passing tests
+1. `cd weather && node --test` reports 37 passing tests
 2. Every item in the Task 12 manual checklist passes
 3. No API key exists anywhere in the repository
 4. No panel can render a fabricated number, including POWER's -999 fill value
