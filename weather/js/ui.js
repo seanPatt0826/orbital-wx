@@ -7,6 +7,7 @@ import {
   formatMeasurement,
   aqiCategory,
   kmhToMph,
+  celsiusDeltaToFahrenheit,
   EM_DASH
 } from './insights.js';
 
@@ -263,11 +264,11 @@ export function renderAnomaly(anomalyC, meta, units) {
 
   const warmer = anomalyC >= 0;
   const magnitude = Math.abs(anomalyC);
-  // This is a temperature DIFFERENCE, not a temperature. It converts with
-  // the 9/5 ratio alone. Do not use celsiusToFahrenheit here: adding the
-  // 32 degree offset to a difference would be wrong by 32 every time.
+  // This is a temperature DIFFERENCE, not a temperature, so it converts with
+  // the 9/5 ratio alone. The arithmetic lives in insights.js where it is unit
+  // tested; using celsiusToFahrenheit here would add 32 to every anomaly.
   const shown = units === 'imperial'
-    ? `${(magnitude * 9 / 5).toFixed(1)} F`
+    ? `${celsiusDeltaToFahrenheit(magnitude).toFixed(1)} F`
     : `${magnitude.toFixed(1)} C`;
 
   const value = element('p', `anomaly__value ${warmer ? 'is-warm' : 'is-cool'}`);
