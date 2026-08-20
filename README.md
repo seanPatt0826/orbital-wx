@@ -69,6 +69,10 @@ strips and consecutive orbits do not quite meet near the equator; those gaps
 arrive as black pixels in a JPEG, which has no alpha channel, so they are keyed
 out and Blue Marble shows through instead of a black tear.
 
+VIIRS leads the layer list because its 3040km swath overlaps between orbits and
+covers the whole planet daily. MODIS Terra is still available but its 2330km
+swath leaves those gaps, and its label and description say so.
+
 Thematic layers legitimately have no polar coverage - the aerosol layer returns
 404 for its entire southernmost tile row while true colour serves it fine. That
 is data absence, and it is logged rather than surfaced as an error.
