@@ -16,22 +16,26 @@ export const API = Object.freeze({
 // GoogleMapsCompatible tile matrix set, so they are deliberately absent.
 export const GIBS_LAYERS = Object.freeze([
   {
-    id: 'truecolor',
-    label: 'True colour',
-    layer: 'MODIS_Terra_CorrectedReflectance_TrueColor',
-    matrixSet: 'GoogleMapsCompatible_Level9',
-    format: 'jpg',
-    maxZoom: 9,
-    description: 'What the MODIS instrument on Terra saw, in natural colour.'
-  },
-  {
+    // First entry is the default. VIIRS leads because its 3040km swath
+    // overlaps between orbits, giving complete daily cover. MODIS Terra's
+    // 2330km swath does not quite meet at the equator, which leaves visible
+    // gaps across the globe - true to the instrument, but it reads as damage.
     id: 'viirs',
-    label: 'True colour (VIIRS)',
+    label: 'True colour',
     layer: 'VIIRS_SNPP_CorrectedReflectance_TrueColor',
     matrixSet: 'GoogleMapsCompatible_Level9',
     format: 'jpg',
     maxZoom: 9,
-    description: 'Natural colour from the VIIRS instrument on Suomi NPP.'
+    description: 'Natural colour from the VIIRS instrument on Suomi NPP, which sees the whole planet each day.'
+  },
+  {
+    id: 'truecolor',
+    label: 'True colour (MODIS)',
+    layer: 'MODIS_Terra_CorrectedReflectance_TrueColor',
+    matrixSet: 'GoogleMapsCompatible_Level9',
+    format: 'jpg',
+    maxZoom: 9,
+    description: 'What MODIS on Terra saw, in natural colour. Its narrower swath leaves gaps between orbits near the equator, where the map falls back to Blue Marble.'
   },
   {
     id: 'aerosol',
