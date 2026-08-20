@@ -67,7 +67,7 @@ function refreshTips() {
     apparentTemperatureC: current.apparent_temperature,
     usAqi: air.us_aqi,
     anomalyC: state.anomaly
-  }));
+  }, state.units));
 }
 
 /** The local date at the searched location, exactly as Open-Meteo reports it. */
@@ -218,6 +218,8 @@ function setUnits(units) {
   ui.renderCurrent(state.forecast, state.place, units);
   ui.renderHourly(state.forecast, units);
   ui.renderDaily(state.forecast, units);
+  // Tips quote real figures, so they carry units and must re-render too.
+  refreshTips();
 
   if (state.anomaly !== null && state.normals) {
     const fillValue = (state.normals.header && state.normals.header.fill_value) ?? POWER_FILL_VALUE;

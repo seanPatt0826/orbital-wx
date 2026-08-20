@@ -117,6 +117,14 @@ body {
   }
   .layout__readouts { display: grid; gap: var(--space-4); align-content: start; }
   .panel--wide { grid-column: 1 / -1; }
+
+  /* The readout column is far taller than the map panel's natural height, so
+     without this the map column ends early and leaves a dead gap beside it.
+     The wrapper already stretches as a grid item; these rules pass that
+     height down to the panel and let the map absorb the slack. */
+  .layout__map { display: flex; }
+  .panel--map { display: flex; flex-direction: column; flex: 1; }
+  .panel--map .map { flex: 1; height: auto; min-height: 380px; }
 }
 
 /* ===== Controls and layer switch ========================================= */

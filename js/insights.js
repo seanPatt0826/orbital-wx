@@ -65,6 +65,19 @@ export function formatTemperature(celsius, units) {
   return `${celsius.toFixed(1)} C`;
 }
 
+/**
+ * Formats a temperature DIFFERENCE for display. Kept separate from
+ * formatTemperature so that neither the anomaly card nor the anomaly tip can
+ * reach for the absolute converter and add a spurious 32 degrees.
+ */
+export function formatTemperatureDelta(deltaC, units) {
+  if (!isNumber(deltaC)) return EM_DASH;
+  if (units === 'imperial') {
+    return `${celsiusDeltaToFahrenheit(deltaC).toFixed(1)} F`;
+  }
+  return `${deltaC.toFixed(1)} C`;
+}
+
 /** Formats any other measurement with an explicit unit label. */
 export function formatMeasurement(value, unit = '', digits = 1) {
   if (!isNumber(value)) return EM_DASH;
@@ -139,7 +152,13 @@ export function aqiCategory(usAqi) {
  * present, so a failed air quality request silently produces fewer tips
  * rather than a wrong one.
  */
-export function buildTips(conditions) {
+export function buildTips(conditions, units = 'metric') {
+  // Every comparison below reads the metric value; `units` only reaches the
+  // wording. Which unit is on screen can never change which tips fire.
+  const speed = (kmh) => (units === 'imperial'
+    ? formatMeasurement(kmhToMph(kmh), 'mph', 0)
+    : formatMeasurement(kmh, 'km/h', 0));
+
   const {
     uvIndexMax = null,
     windSpeedKmh = null,
@@ -165,7 +184,7 @@ export function buildTips(conditions) {
       id: 'wind',
       severity: 'caution',
       title: 'Strong wind',
-      body: `Wind is running at ${windSpeedKmh.toFixed(0)} km/h. Secure loose outdoor objects.`
+      body: `Wind is running at ${speed(windSpeedKmh)}. Secure loose outdoor objects.`
     });
   }
 
@@ -200,7 +219,7 @@ export function buildTips(conditions) {
       id: 'heat',
       severity: 'warning',
       title: 'Heat stress risk',
-      body: `It feels like ${apparentTemperatureC.toFixed(1)} C. Hydrate and avoid exertion in the afternoon.`
+      body: `It feels like ${formatTemperature(apparentTemperatureC, units)}. Hydrate and avoid exertion in the afternoon.`
     });
   }
 
@@ -209,7 +228,7 @@ export function buildTips(conditions) {
       id: 'freeze',
       severity: 'warning',
       title: 'Freezing conditions',
-      body: `It feels like ${apparentTemperatureC.toFixed(1)} C. Watch for ice underfoot.`
+      body: `It feels like ${formatTemperature(apparentTemperatureC, units)}. Watch for ice underfoot.`
     });
   }
 
@@ -218,7 +237,7 @@ export function buildTips(conditions) {
       id: 'anomaly-warm',
       severity: 'info',
       title: 'Warmer than the long-term average',
-      body: `Today runs ${anomalyC.toFixed(1)} C above the NASA POWER average for this month here.`
+      body: `Today runs ${formatTemperatureDelta(anomalyC, units)} above the NASA POWER average for this month here.`
     });
   }
 
@@ -227,7 +246,7 @@ export function buildTips(conditions) {
       id: 'anomaly-cool',
       severity: 'info',
       title: 'Cooler than the long-term average',
-      body: `Today runs ${Math.abs(anomalyC).toFixed(1)} C below the NASA POWER average for this month here.`
+      body: `Today runs ${formatTemperatureDelta(Math.abs(anomalyC), units)} below the NASA POWER average for this month here.`
     });
   }
 

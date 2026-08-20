@@ -9,6 +9,7 @@ import {
   monthKeyFromDate,
   monthKeyFromIsoDate,
   celsiusDeltaToFahrenheit,
+  formatTemperatureDelta,
   firstValue,
   computeAnomaly,
   aqiCategory,
@@ -218,4 +219,55 @@ test('the air quality tip escalates from caution to warning at the unhealthy bou
   assert.equal(severity(101), 'caution');
   assert.equal(severity(150), 'caution');
   assert.equal(severity(151), 'warning');
+});
+
+// ---------------------------------------------------------------------------
+// Tips must read in the unit the user is viewing. The rules still evaluate
+// metric values, so which unit is displayed can never change which tips fire.
+// ---------------------------------------------------------------------------
+
+test('buildTips renders absolute temperatures in the display unit', () => {
+  const body = (units) => buildTips({ apparentTemperatureC: 35 }, units).find((t) => t.id === 'heat').body;
+  assert.match(body('metric'), /35\.0 C/);
+  assert.match(body('imperial'), /95\.0 F/);
+  assert.doesNotMatch(body('imperial'), / C\b/);
+});
+
+test('buildTips renders the anomaly as a difference, not a temperature', () => {
+  // 4 C above the average is 7.2 F above it. Formatting it as a temperature
+  // would add the 32 degree offset and claim 39.2 F.
+  const body = (units) => buildTips({ anomalyC: 4 }, units).find((t) => t.id === 'anomaly-warm').body;
+  assert.match(body('metric'), /4\.0 C/);
+  assert.match(body('imperial'), /7\.2 F/);
+  assert.doesNotMatch(body('imperial'), /39\.2/);
+});
+
+test('buildTips renders wind speed in the display unit', () => {
+  const body = (units) => buildTips({ windSpeedKmh: 50 }, units).find((t) => t.id === 'wind').body;
+  assert.match(body('metric'), /50 km\/h/);
+  assert.match(body('imperial'), /31 mph/);
+});
+
+test('buildTips fires on the same metric thresholds whichever unit is displayed', () => {
+  const ids = (c, u) => buildTips(c, u).map((t) => t.id);
+  for (const units of ['metric', 'imperial']) {
+    assert.deepEqual(ids({ apparentTemperatureC: 32 }, units), ['heat'], `at 32 C, ${units}`);
+    assert.deepEqual(ids({ apparentTemperatureC: 31.9 }, units), [], `at 31.9 C, ${units}`);
+    assert.deepEqual(ids({ windSpeedKmh: 40 }, units), ['wind'], `at 40 km/h, ${units}`);
+    assert.deepEqual(ids({ anomalyC: 3 }, units), ['anomaly-warm'], `at +3 C, ${units}`);
+  }
+});
+
+test('buildTips defaults to metric when no unit is given', () => {
+  assert.match(buildTips({ apparentTemperatureC: 35 })[0].body, /35\.0 C/);
+});
+
+test('formatTemperatureDelta formats a difference in either unit', () => {
+  // Shared by the anomaly card and the anomaly tip so the two can never
+  // disagree, and so neither can reach for formatTemperature by mistake.
+  assert.equal(formatTemperatureDelta(4, 'metric'), '4.0 C');
+  assert.equal(formatTemperatureDelta(4, 'imperial'), '7.2 F');
+  assert.equal(formatTemperatureDelta(0, 'imperial'), '0.0 F');
+  assert.equal(formatTemperatureDelta(-2.5, 'metric'), '-2.5 C');
+  assert.equal(formatTemperatureDelta(null, 'metric'), '—');
 });

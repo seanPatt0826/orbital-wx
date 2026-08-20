@@ -7,7 +7,7 @@ import {
   formatMeasurement,
   aqiCategory,
   kmhToMph,
-  celsiusDeltaToFahrenheit,
+  formatTemperatureDelta,
   EM_DASH
 } from './insights.js';
 
@@ -268,13 +268,10 @@ export function renderAnomaly(anomalyC, meta, units) {
   }
 
   const warmer = anomalyC >= 0;
-  const magnitude = Math.abs(anomalyC);
-  // This is a temperature DIFFERENCE, not a temperature, so it converts with
-  // the 9/5 ratio alone. The arithmetic lives in insights.js where it is unit
-  // tested; using celsiusToFahrenheit here would add 32 to every anomaly.
-  const shown = units === 'imperial'
-    ? `${celsiusDeltaToFahrenheit(magnitude).toFixed(1)} F`
-    : `${magnitude.toFixed(1)} C`;
+  // A DIFFERENCE, not a temperature: it converts by the 9/5 ratio with no
+  // offset. formatTemperatureDelta is the single place that knows this, and
+  // the anomaly tip uses it too so the card and the tip cannot disagree.
+  const shown = formatTemperatureDelta(Math.abs(anomalyC), units);
 
   const value = element('p', `anomaly__value ${warmer ? 'is-warm' : 'is-cool'}`);
   value.textContent = `${warmer ? '+' : '-'}${shown}`;
